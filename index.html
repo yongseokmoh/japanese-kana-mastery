@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>일본어 히라가나 카타가나 학습</title>
+    <title>일본어 오십음도 학습 (스마트 학습 모드)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,7 +13,8 @@
             --text-color: #343a40;
             --card-bg: #ffffff;
             --border-color: #e9ecef;
-            --highlight-color: #4dabf7;
+            --hiragana-color: #1c7ed6;
+            --katakana-color: #e64980;
         }
 
         body {
@@ -25,13 +26,57 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding-top: 140px; /* Space for sticky header */
+        }
+
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            box-sizing: border-box;
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 30px;
+            font-size: 20px;
+            margin: 0;
             text-align: center;
             font-weight: 700;
+        }
+
+        .toggles {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .toggle-btn {
+            background-color: #f1f3f5;
+            border: 1px solid #ced4da;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .toggle-btn.active {
+            background-color: #4dabf7;
+            color: white;
+            border-color: #339af0;
         }
 
         .container {
@@ -64,27 +109,47 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 48px;
-            font-size: 28px;
+            height: 54px;
+            font-size: 30px;
             font-weight: 500;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .hiragana {
-            color: #1c7ed6;
+        .char-item:not(.empty-item):active {
+            transform: scale(0.92);
+            background-color: #f1f3f5;
         }
 
-        .katakana {
-            color: #e64980;
-        }
-
+        .hiragana { color: var(--hiragana-color); }
+        .katakana { color: var(--katakana-color); }
+        
         .pronunciation {
             font-size: 16px;
             color: #495057;
             font-weight: 400;
+            height: 30px;
+            pointer-events: none;
         }
 
         .empty-item {
             visibility: hidden;
+            pointer-events: none;
+        }
+
+        .hidden-content {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+        .audio-hint {
+            font-size: 12px;
+            color: #868e96;
+            margin-top: -5px;
+            text-align: center;
         }
         
         footer {
@@ -98,7 +163,14 @@
 </head>
 <body>
 
-    <h1>일본어 오십음도 (五十音図)</h1>
+    <div class="controls">
+        <h1>일본어 오십음도 (五十音図)</h1>
+        <div class="audio-hint">글자를 터치하면 원어민 발음을 들을 수 있습니다 🔊</div>
+        <div class="toggles">
+            <div class="toggle-btn" id="toggle-katakana" onclick="toggleVisibility('katakana', this)">카타가나 가리기</div>
+            <div class="toggle-btn" id="toggle-pronunciation" onclick="toggleVisibility('pronunciation', this)">발음 가리기</div>
+        </div>
+    </div>
 
     <div class="container" id="app">
         <!-- Content will be injected by JavaScript -->
@@ -106,7 +178,7 @@
 
     <footer>
         계속 스크롤하여 모든 글자를 확인하세요.<br>
-        © Japanese Learning App
+        © Japanese Kana Mastery
     </footer>
 
     <script>
@@ -125,6 +197,26 @@
         ];
 
         const container = document.getElementById('app');
+        
+        // TTS Setup
+        const synth = window.speechSynthesis;
+        let japaneseVoice = null;
+        
+        // Wait for voices to load
+        speechSynthesis.onvoiceschanged = () => {
+            const voices = synth.getVoices();
+            japaneseVoice = voices.find(voice => voice.lang.includes('ja') || voice.lang.includes('JP'));
+        };
+
+        function playAudio(text) {
+            if (!text) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.9; // Slightly slower for learning
+            if (japaneseVoice) utterance.voice = japaneseVoice;
+            synth.cancel(); // Stop any ongoing speech
+            synth.speak(utterance);
+        }
 
         data.forEach(group => {
             const rowGroup = document.createElement('div');
@@ -132,30 +224,32 @@
 
             // Hiragana Row
             const hRow = document.createElement('div');
-            hRow.className = 'char-row hiragana';
+            hRow.className = 'char-row hiragana-row';
             group.h.forEach(char => {
                 const item = document.createElement('div');
-                item.className = char ? 'char-item' : 'char-item empty-item';
+                item.className = char ? 'char-item hiragana' : 'char-item empty-item';
                 item.textContent = char;
+                if (char) item.onclick = () => playAudio(char);
                 hRow.appendChild(item);
             });
 
             // Katakana Row
             const kRow = document.createElement('div');
-            kRow.className = 'char-row katakana';
+            kRow.className = 'char-row katakana-row';
             group.k.forEach(char => {
                 const item = document.createElement('div');
-                item.className = char ? 'char-item' : 'char-item empty-item';
+                item.className = char ? 'char-item katakana' : 'char-item empty-item';
                 item.textContent = char;
+                if (char) item.onclick = () => playAudio(char);
                 kRow.appendChild(item);
             });
 
             // Pronunciation Row
             const pRow = document.createElement('div');
-            pRow.className = 'char-row pronunciation';
+            pRow.className = 'char-row pronunciation-row';
             group.p.forEach(char => {
                 const item = document.createElement('div');
-                item.className = char ? 'char-item' : 'char-item empty-item';
+                item.className = char ? 'char-item pronunciation' : 'char-item empty-item';
                 item.textContent = char;
                 pRow.appendChild(item);
             });
@@ -166,6 +260,33 @@
 
             container.appendChild(rowGroup);
         });
+
+        // Toggle logic
+        const state = {
+            katakana: true,
+            pronunciation: true
+        };
+
+        function toggleVisibility(type, btnElement) {
+            state[type] = !state[type];
+            btnElement.classList.toggle('active');
+            
+            const elements = document.querySelectorAll(`.${type}-row`);
+            elements.forEach(el => {
+                if (state[type]) {
+                    el.classList.remove('hidden-content');
+                } else {
+                    el.classList.add('hidden-content');
+                }
+            });
+            
+            // Update button text dynamically
+            if (type === 'katakana') {
+                btnElement.textContent = state.katakana ? '카타가나 가리기' : '카타가나 보이기';
+            } else if (type === 'pronunciation') {
+                btnElement.textContent = state.pronunciation ? '발음 가리기' : '발음 보이기';
+            }
+        }
     </script>
 </body>
 </html>
