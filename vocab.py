@@ -74,15 +74,15 @@ html_content = '''<!DOCTYPE html>
         words.forEach(w => {
             const el = document.createElement('div');
             el.className = 'vocab-card';
-            el.innerHTML = 
-                <div class="vocab-icon"></div>
+            el.innerHTML = `
+                <div class="vocab-icon">${w.icon}</div>
                 <div class="vocab-info">
-                    <div class="vocab-jp"></div>
-                    <div class="vocab-read"></div>
-                    <div class="vocab-kr"></div>
+                    <div class="vocab-jp">${w.jp}</div>
+                    <div class="vocab-read">${w.read}</div>
+                    <div class="vocab-kr">${w.kr}</div>
                 </div>
-                <button class="btn-play" onclick="playVocab('')">🔊</button>
-            ;
+                <button class="btn-play" onclick="playVocab('${w.jp}')">🔊</button>
+            `;
             list.appendChild(el);
         });
     </script>

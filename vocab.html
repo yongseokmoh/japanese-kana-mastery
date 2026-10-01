@@ -30,11 +30,11 @@
 <body>
     <div class="header">
         <nav class="main-nav">
-            <a href="index.html" class="nav-item">🏠 오십음도</a>
-            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
-            <a href="quiz.html" class="nav-item">🧪 퀴즈</a>
-            <a href="vocab.html" class="nav-item active">📚 단어</a>
-            <a href="dashboard.html" class="nav-item">📊 통계</a>
+            <a href="index.html" class="nav-item">가나</a>
+            <a href="kanji.html" class="nav-item">한자학습</a>
+            <a href="quiz.html" class="nav-item">퀴즈</a>
+            <a href="vocab.html" class="nav-item active">기초단어</a>
+            <a href="dashboard.html" class="nav-item">통계</a>
         </nav>
         <div style="font-weight:700;font-size:18px">브릿지 콘텐츠 (기초 단어장)</div>
     </div>
@@ -73,15 +73,15 @@
         words.forEach(w => {
             const el = document.createElement('div');
             el.className = 'vocab-card';
-            el.innerHTML = 
-                <div class="vocab-icon"></div>
+            el.innerHTML = `
+                <div class="vocab-icon">${w.icon}</div>
                 <div class="vocab-info">
-                    <div class="vocab-jp"></div>
-                    <div class="vocab-read"></div>
-                    <div class="vocab-kr"></div>
+                    <div class="vocab-jp">${w.jp}</div>
+                    <div class="vocab-read">${w.read}</div>
+                    <div class="vocab-kr">${w.kr}</div>
                 </div>
-                <button class="btn-play" onclick="playVocab('')">🔊</button>
-            ;
+                <button class="btn-play" onclick="playVocab('${w.jp}')">🔊</button>
+            `;
             list.appendChild(el);
         });
     </script>

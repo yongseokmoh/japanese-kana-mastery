@@ -209,11 +209,11 @@
 
     <div class="controls">
         <nav class="main-nav">
-            <a href="index.html" class="nav-item active">🏠 오십음도</a>
-            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
-            <a href="quiz.html" class="nav-item">🧪 퀴즈</a>
-            <a href="vocab.html" class="nav-item">📚 단어</a>
-            <a href="dashboard.html" class="nav-item">📊 통계</a>
+            <a href="index.html" class="nav-item active">가나</a>
+            <a href="kanji.html" class="nav-item">한자학습</a>
+            <a href="quiz.html" class="nav-item">퀴즈</a>
+            <a href="vocab.html" class="nav-item">기초단어</a>
+            <a href="dashboard.html" class="nav-item">통계</a>
         </nav>
         <h1>일본어 오십음도 (五十音図)</h1>
         <div class="audio-hint">아이폰의 경우 '무음 모드(매너 모드)'를 해제해야 소리가 납니다 🔊</div>
@@ -339,6 +339,40 @@
 
             container.appendChild(rowGroup);
         });
+
+        
+        app.appendChild(sectionHeader('゛', '탁음 (濁音)', '탁점', 'badge-dakuten', '청음에 탁점(゛)을 붙여 유성음으로 변환 — か→が, さ→ざ, た→だ, は→ば'));
+        dakutenGroups.forEach(g => app.appendChild(renderGroup(g, false)));
+
+        // Handakuten
+        app.appendChild(sectionHeader('゜', '반탁음 (半濁音)', '반탁점', 'badge-handakuten', 'は行에 반탁점(゜)을 붙여 파열음 P로 변환 — は→ぱ, ひ→ぴ'));
+        handakutenGroups.forEach(g => app.appendChild(renderGroup(g, false)));
+
+        // Youon
+        app.appendChild(sectionHeader('ゃ', '요음 (拗音)', '조합음', 'badge-youon', '이단(き・し・ち 등) + 소문자(ゃゅょ) 두 글자 조합으로 한 음절'));
+        const youonWrap = document.createElement('div');
+        youonWrap.className = 'row-group';
+        // Youon: render all groups in one card, each group as 3 rows
+        youonGroups.forEach((g, gi) => {
+            ['h','k','p'].forEach(key => {
+                const row = document.createElement('div');
+                const typeClass = key === 'h' ? 'hiragana-row' : key === 'k' ? 'katakana-row' : 'pronunciation-row';
+                row.className = 'char-row col3 ' + typeClass;
+                if (gi > 0 && key === 'h') row.style.marginTop = '8px';
+                g[key].forEach(char => {
+                    const item = document.createElement('div');
+                    const colorClass = key === 'h' ? 'hiragana' : key === 'k' ? 'katakana' : 'pronunciation';
+                    item.className = `char-item sm ${colorClass}`;
+                    item.textContent = char;
+                    if (key === 'h' || key === 'k') item.onclick = () => playAudio(char);
+                    row.appendChild(item);
+                });
+                youonWrap.appendChild(row);
+            });
+        });
+        app.appendChild(youonWrap);
+
+        
 
         // Toggle logic
         const state = {
