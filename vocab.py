@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+import sys
+
+html_content = '''<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -30,10 +32,9 @@
 <body>
     <div class="header">
         <nav class="main-nav">
-            <a href="index.html" class="nav-item">🏠 오십음도</a>
-            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
+            <a href="index.html" class="nav-item">🏠 가나</a>
             <a href="quiz.html" class="nav-item">🧪 퀴즈</a>
-            <a href="vocab.html" class="nav-item active">📚 단어</a>
+            <a href="vocab.html" class="nav-item active">📚 기초단어</a>
             <a href="dashboard.html" class="nav-item">📊 통계</a>
         </nav>
         <div style="font-weight:700;font-size:18px">브릿지 콘텐츠 (기초 단어장)</div>
@@ -87,3 +88,6 @@
     </script>
 </body>
 </html>
+'''
+with open('vocab.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
