@@ -295,6 +295,7 @@
         body.dark-mode .audio-btn { background: #2c2c2c; border-color: #444; color: #ccc; }
         body.dark-mode .progress-bar-wrap { background: #333; }
         body.dark-mode .score-chip { background: #194a24; color: #8ce99a; }
+        body.dark-mode .score-chip[onclick] { background: #2c2c2c !important; color: #ccc !important; }
         body.dark-mode .wrong-chip { background: #2c2c2c; border-color: #444; }
         body.dark-mode .wrong-chip .wp { color: #aaa; }
         body.dark-mode .btn-setup-link { background: #2c2c2c; color: #ccc; }
@@ -337,7 +338,11 @@
                 <div class="count-msg" id="count-msg" style="margin-top:12px">총 46개 출제</div>
             </div>
 
-            <button class="btn-start" onclick="startQuiz()">▶ 시작하기</button>
+            
+            <div id="resume-container" style="display:none; margin-bottom:12px;">
+                <button class="btn-start" style="background:#20c997; box-shadow:0 4px 12px rgba(32,201,151,0.4);" onclick="resumeQuiz()">↩ 하던 퀴즈 이어하기 (<span id="resume-prog"></span>)</button>
+            </div>
+            <button class="btn-start" onclick="startQuiz()">▶ 새 퀴즈 시작하기</button>
         </div>
 
         <!-- ===== QUIZ ===== -->
@@ -346,6 +351,7 @@
                 <span id="prog-text">1 / 46</span>
                 <span id="timer-text" style="display:none; color:var(--red); font-weight:700;">⏱ 00:00</span>
                 <span class="score-chip" id="score-chip">✓ 0</span>
+                <span class="score-chip" style="background:#f1f3f5; color:#495057; cursor:pointer;" onclick="pauseQuiz()">⏸ 일시정지</span>
             </div>
             <div class="progress-bar-wrap">
                 <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
@@ -449,6 +455,47 @@
     let deck = [], idx = 0, correct = 0, wrong = 0, wrongCards = [];
     let fcFlipped = false, mcAnswered = false;
     let timerInterval = null, timeLeft = 0;
+    
+    function saveQuizState() {
+        if (idx >= deck.length) {
+            localStorage.removeItem('savedQuiz');
+            return;
+        }
+        const state = {
+            cfg, deck, idx, correct, wrong, wrongCards,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('savedQuiz', JSON.stringify(state));
+    }
+    
+    function checkSavedQuiz() {
+        const saved = localStorage.getItem('savedQuiz');
+        if (saved) {
+            try {
+                const s = JSON.parse(saved);
+                // Only show if there's actual progress but not finished
+                if (s.idx > 0 && s.idx < s.deck.length) {
+                    document.getElementById('resume-container').style.display = 'block';
+                    document.getElementById('resume-prog').textContent = s.idx + '/' + s.deck.length;
+                }
+            } catch(e) {}
+        }
+    }
+    window.addEventListener('DOMContentLoaded', checkSavedQuiz);
+    
+    function resumeQuiz() {
+        const saved = localStorage.getItem('savedQuiz');
+        if (saved) {
+            try {
+                const s = JSON.parse(saved);
+                cfg = s.cfg; deck = s.deck; idx = s.idx;
+                correct = s.correct; wrong = s.wrong; wrongCards = s.wrongCards;
+                showScreen('screen-quiz');
+                renderCard();
+            } catch(e) {}
+        }
+    }
+    
     let listenPlayed = false;
 
     const counts = { basic: 46, dakuten: 25, youon: 33, all: 104 };
@@ -469,9 +516,18 @@
         return pool;
     }
 
+    
+    function pauseQuiz() {
+        saveQuizState();
+        clearInterval(timerInterval);
+        showScreen('screen-setup');
+        checkSavedQuiz();
+    }
+    
     function startQuiz() {
         deck = shuffle([...buildPool()]);
         idx = 0; correct = 0; wrong = 0; wrongCards = [];
+        saveQuizState();
         clearInterval(timerInterval);
         if (cfg.mode === 'time') {
             timeLeft = deck.length * 3; // 3 seconds per question
@@ -558,7 +614,7 @@
 
     function answerFC(isCorrect) {
         if (isCorrect) { correct++; recordStat(deck[idx].h, true); } else { wrong++; wrongCards.push(deck[idx]); recordStat(deck[idx].h, false); }
-        idx++; renderCard();
+        idx++; saveQuizState(); renderCard();
     }
 
     // --- Multiple Choice ---
@@ -589,7 +645,7 @@
         });
         if (chosen === correctP) { correct++; speak(card.h); }
         else { wrong++; wrongCards.push(card); speak(card.h); }
-        setTimeout(() => { idx++; renderCard(); }, 1300);
+        setTimeout(() => { idx++; saveQuizState(); renderCard(); }, 1300);
     }
 
     // --- Listening Quiz ---
@@ -625,12 +681,13 @@
         });
         if (chosen === correctH) { correct++; speak(card.h); }
         else { wrong++; wrongCards.push(card); speak(card.h); }
-        setTimeout(() => { idx++; renderCard(); }, 1300);
+        setTimeout(() => { idx++; saveQuizState(); renderCard(); }, 1300);
     }
 
     // ===== RESULTS =====
     function showResults() {
         showScreen('screen-results');
+        localStorage.removeItem('savedQuiz');
         clearInterval(timerInterval);
         const total = deck.length;
         const pct = Math.round((correct / total) * 100);
