@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도쿄 전철역 학습 - Japanese Kana Mastery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="stations_data.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        #app {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .nav-item {
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #495057;
+            font-size: 13px;
+            font-weight: 500;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-item:hover { background: #e9ecef; }
+        .nav-item.active {
+            background: #4dabf7;
+            color: white;
+            border-color: #339af0;
+        }
+        .dark-mode .nav-item { background: #2c2c2c; color: #e0e0e0; border-color: #444; }
+        .dark-mode .nav-item.active { background: #339af0; color: #fff; }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .dark-mode .search-bar {
+            background: #2c2c2c;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        .line-group {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .dark-mode .line-group { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+
+        .line-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #228be6;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            border-bottom: 2px solid #f1f3f5;
+            padding-bottom: 8px;
+        }
+        .dark-mode .line-title { color: #339af0; border-bottom-color: #333; }
+
+        .line-kana { font-size: 14px; font-weight: 400; color: #868e96; }
+        .line-ko { font-size: 14px; font-weight: 500; color: #495057; }
+        .dark-mode .line-ko { color: #adb5bd; }
+
+        .station-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .station-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .dark-mode .station-item { background: #252525; border-color: #333; }
+
+        .st-name { font-size: 16px; font-weight: 700; color: #343a40; }
+        .dark-mode .st-name { color: #f8f9fa; }
+        .st-kana { font-size: 13px; color: #e64980; }
+        .dark-mode .st-kana { color: #ff6b6b; }
+        .st-ko { font-size: 14px; font-weight: 500; color: #495057; }
+        .dark-mode .st-ko { color: #adb5bd; }
+
+        .hidden { display: none !important; }
+
+        #loading { text-align: center; color: #868e96; padding: 40px; }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header-top">
+            <nav class="main-nav">
+                <a href="index.html" class="nav-item">가나</a>
+                <a href="kanji.html" class="nav-item">한자</a>
+                <a href="quiz.html" class="nav-item">퀴즈</a>
+                <a href="vocab.html" class="nav-item">기초단어장</a>
+                <a href="stations.html" class="nav-item active">도쿄전철역</a>
+                <a href="dashboard.html" class="nav-item">대시보드</a>
+            </nav>
+            <button class="toggle-btn" id="toggle-dark" onclick="toggleDark()" style="border-radius: 20px; padding: 6px 12px; border: 1px solid #ced4da; background: #fff; cursor: pointer;">다크 모드</button>
+        </div>
+
+        <h1>도쿄도 지하철/열차역 리스트</h1>
+
+        <input type="text" id="searchInput" class="search-bar" placeholder="노선명 또는 역명 (한국어/일본어) 검색..." onkeyup="filterStations()">
+
+        <div id="loading">데이터를 렌더링 중입니다...</div>
+        <div id="lines-container" style="display:none;"></div>
+    </div>
+
+    <script>
+        // Dark mode logic
+        function toggleDark() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark ? '1' : '0');
+            document.getElementById('toggle-dark').textContent = isDark ? '라이트 모드' : '다크 모드';
+        }
+        if (localStorage.getItem('darkMode') === '1') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('toggle-dark').textContent = '라이트 모드';
+        }
+
+        const container = document.getElementById('lines-container');
+
+        function renderData() {
+            // stationsData from stations_data.js
+            if (typeof stationsData === 'undefined') {
+                document.getElementById('loading').textContent = '데이터를 불러오지 못했습니다.';
+                return;
+            }
+
+            stationsData.forEach(line => {
+                const group = document.createElement('div');
+                group.className = 'line-group';
+                
+                const title = document.createElement('div');
+                title.className = 'line-title';
+                title.innerHTML = `
+                    <span>${line.line_name}</span>
+                    <span class="line-kana">${line.line_kana}</span>
+                    <span class="line-ko">${line.line_ko}</span>
+                `;
+                group.appendChild(title);
+
+                const stList = document.createElement('div');
+                stList.className = 'station-list';
+
+                line.stations.forEach(st => {
+                    const item = document.createElement('div');
+                    item.className = 'station-item';
+                    item.innerHTML = `
+                        <div class="st-name">${st.name}</div>
+                        <div class="st-kana">${st.kana}</div>
+                        <div class="st-ko">${st.ko}</div>
+                    `;
+                    stList.appendChild(item);
+                });
+
+                group.appendChild(stList);
+                container.appendChild(group);
+            });
+
+            document.getElementById('loading').style.display = 'none';
+            container.style.display = 'block';
+        }
+
+        function filterStations() {
+            const val = document.getElementById('searchInput').value.toLowerCase().trim();
+            const groups = document.querySelectorAll('.line-group');
+
+            groups.forEach(group => {
+                const titleText = group.querySelector('.line-title').textContent.toLowerCase();
+                const stations = group.querySelectorAll('.station-item');
+                let hasVisibleStation = false;
+
+                stations.forEach(st => {
+                    const stText = st.textContent.toLowerCase();
+                    if (val === '' || stText.includes(val) || titleText.includes(val)) {
+                        st.classList.remove('hidden');
+                        hasVisibleStation = true;
+                    } else {
+                        st.classList.add('hidden');
+                    }
+                });
+
+                if (hasVisibleStation || titleText.includes(val)) {
+                    group.classList.remove('hidden');
+                    // If the line itself matches, show all its stations
+                    if (titleText.includes(val) && val !== '') {
+                        stations.forEach(st => st.classList.remove('hidden'));
+                    }
+                } else {
+                    group.classList.add('hidden');
+                }
+            });
+        }
+
+        setTimeout(renderData, 100);
+    </script>
+</body>
+</html>
