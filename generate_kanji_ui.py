@@ -8,7 +8,7 @@ html_content = '''<!DOCTYPE html>
     <title>한자 — 일본어 학습</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8f9fa; --text: #343a40; --card: #ffffff; --border: #e9ecef; --accent: #4dabf7; --accent-dark: #339af0; }
+        :root { --bg: #f8f9fa; --text: #343a40; --card: #ffffff; --border: #e9ecef; --accent: #4dabf7; --accent-dark: #339af0; --bookmark: #ff922b; }
         body.dark-mode { --bg: #121212; --text: #e0e0e0; --card: #1e1e1e; --border: #333333; }
         body { font-family: "Noto Sans KR", "Noto Sans JP", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-top: 130px; display: flex; flex-direction: column; align-items: center; }
         .header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; box-sizing: border-box; }
@@ -24,11 +24,31 @@ html_content = '''<!DOCTYPE html>
         body.dark-mode .tab-btn:not(.active) { background: #2c2c2c; color: #e0e0e0; border-color: #444; }
 
         .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 15px; }
-        .kanji-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .kanji-main { display: flex; gap: 20px; align-items: flex-start; }
-        .kanji-char { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1; border-right: 1px solid var(--border); padding-right: 20px; }
-        .kanji-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .page-actions { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -5px; }
+        .btn-restore { padding: 6px 12px; font-size: 12px; background: white; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; color: #495057; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        body.dark-mode .btn-restore { background: #2c2c2c; border-color: #444; color: #ccc; }
+        .btn-restore:hover { background: #f1f3f5; }
+        body.dark-mode .btn-restore:hover { background: #3c3c3c; }
+
+        .kanji-card { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+        .kanji-card.bookmarked { border: 2px solid var(--bookmark); box-shadow: 0 0 10px rgba(255, 146, 43, 0.2); }
+        .kanji-card.memorized { background: #f1f3f5; opacity: 0.6; }
+        body.dark-mode .kanji-card.memorized { background: #1a1a1a; opacity: 0.5; border-color: #222; }
         
+        .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+        .action-btn { background: none; border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; background: var(--card); color: #adb5bd; transition: 0.2s; }
+        .action-btn:hover { background: #f8f9fa; color: #495057; }
+        body.dark-mode .action-btn { background: #2c2c2c; border-color: #444; color: #888; }
+        .kanji-card.bookmarked .btn-bmk { color: var(--bookmark); border-color: var(--bookmark); background: #fff4e6; }
+        body.dark-mode .kanji-card.bookmarked .btn-bmk { background: #3e2610; }
+        .kanji-card.memorized .btn-mem { color: #40c057; border-color: #40c057; background: #ebfbee; }
+        body.dark-mode .kanji-card.memorized .btn-mem { background: #122b16; }
+        
+        .kanji-main { display: flex; gap: 20px; align-items: flex-start; padding-right: 60px; /* space for actions */ }
+        .kanji-char { font-size: 64px; font-weight: 700; color: var(--accent); line-height: 1; border-right: 1px solid var(--border); padding-right: 20px; transition: color 0.3s; }
+        .kanji-card.memorized .kanji-char { color: #868e96; }
+        
+        .kanji-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .info-row { display: flex; gap: 10px; align-items: stretch; }
         .info-label { font-size: 12px; font-weight: bold; background: #f1f3f5; padding: 4px 8px; border-radius: 4px; color: #495057; white-space: nowrap; display: flex; align-items: center; }
         body.dark-mode .info-label { background: #333; color: #ccc; }
@@ -39,11 +59,15 @@ html_content = '''<!DOCTYPE html>
         .reading-ja { font-size: 15px; font-weight: 500; }
         .reading-ko { font-size: 12px; color: #adb5bd; }
         
-        .kanji-meta { font-size: 12px; color: #868e96; display: flex; gap: 10px; margin-top: auto; padding-top: 5px; }
+        .kanji-meta { font-size: 12px; color: #868e96; display: flex; gap: 10px; margin-top: auto; padding-top: 5px; align-items: center; }
+        .serial-num { font-size: 10px; color: #dee2e6; }
+        body.dark-mode .serial-num { color: #444; }
         
         .words-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
-        .btn-words { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; }
+        .btn-words { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; transition: 0.2s; }
+        .kanji-card.memorized .btn-words { border-color: #adb5bd; color: #adb5bd; }
         .btn-words:hover { background: var(--accent); color: white; }
+        .kanji-card.memorized .btn-words:hover { background: #adb5bd; color: white; }
         .words-list { margin-top: 10px; display: none; flex-direction: column; gap: 8px; }
         .word-item { background: #f8f9fa; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
         body.dark-mode .word-item { background: #2c2c2c; }
@@ -75,6 +99,9 @@ html_content = '''<!DOCTYPE html>
     </div>
 
     <div class="container">
+        <div class="page-actions">
+            <button class="btn-restore" onclick="restorePageOrder()">↺ 원래 순서대로 돌리기</button>
+        </div>
         <div id="loading">데이터를 불러오는 중...</div>
         <div id="kanji-list"></div>
         <div class="pagination" id="pagination"></div>
@@ -87,6 +114,52 @@ html_content = '''<!DOCTYPE html>
         const ITEMS_PER_PAGE = 50;
         let currentTab = 'basic';
         let currentPage = 1;
+        
+        // Load states from localStorage
+        let bookmarkSet = new Set(JSON.parse(localStorage.getItem('kanji_bookmarks') || '[]'));
+        let memorizedSet = new Set(JSON.parse(localStorage.getItem('kanji_memorized') || '[]'));
+
+        function saveStates() {
+            localStorage.setItem('kanji_bookmarks', JSON.stringify([...bookmarkSet]));
+            localStorage.setItem('kanji_memorized', JSON.stringify([...memorizedSet]));
+        }
+
+        function toggleBookmark(kanji, el) {
+            if (bookmarkSet.has(kanji)) {
+                bookmarkSet.delete(kanji);
+            } else {
+                bookmarkSet.add(kanji);
+            }
+            saveStates();
+            // Toggle visual without re-rendering to prevent losing scroll position instantly
+            const card = el.closest('.kanji-card');
+            card.classList.toggle('bookmarked');
+        }
+
+        function toggleMemorized(kanji, el) {
+            if (memorizedSet.has(kanji)) {
+                memorizedSet.delete(kanji);
+            } else {
+                memorizedSet.add(kanji);
+            }
+            saveStates();
+            const scrollPos = window.scrollY;
+            // Re-render to trigger sorting and moving to bottom
+            renderKanji();
+            window.scrollTo(0, scrollPos);
+        }
+
+        function restorePageOrder() {
+            const data = kanjiData[currentTab];
+            const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+            const pageSlice = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+            
+            pageSlice.forEach(k => memorizedSet.delete(k.kanji));
+            saveStates();
+            const scrollPos = window.scrollY;
+            renderKanji();
+            window.scrollTo(0, scrollPos);
+        }
 
         function renderPagination(totalItems) {
             const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -102,7 +175,7 @@ html_content = '''<!DOCTYPE html>
                 const btn = document.createElement('button');
                 btn.className = 'page-btn';
                 btn.textContent = '이전';
-                btn.onclick = () => { currentPage--; renderKanji(); };
+                btn.onclick = () => { currentPage--; renderKanji(true); };
                 pag.appendChild(btn);
             }
 
@@ -110,7 +183,7 @@ html_content = '''<!DOCTYPE html>
                 const btn = document.createElement('button');
                 btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
                 btn.textContent = i;
-                btn.onclick = () => { currentPage = i; renderKanji(); };
+                btn.onclick = () => { currentPage = i; renderKanji(true); };
                 pag.appendChild(btn);
             }
 
@@ -118,7 +191,7 @@ html_content = '''<!DOCTYPE html>
                 const btn = document.createElement('button');
                 btn.className = 'page-btn';
                 btn.textContent = '다음';
-                btn.onclick = () => { currentPage++; renderKanji(); };
+                btn.onclick = () => { currentPage++; renderKanji(true); };
                 pag.appendChild(btn);
             }
         }
@@ -129,7 +202,7 @@ html_content = '''<!DOCTYPE html>
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.textContent.includes(tab === 'basic' ? '기초' : '심화'));
             });
-            renderKanji();
+            renderKanji(true);
         }
 
         async function loadWords(kanji, btn, listEl) {
@@ -138,7 +211,6 @@ html_content = '''<!DOCTYPE html>
                 btn.textContent = '예시 단어 보기 ▼';
                 return;
             }
-            
             if (listEl.dataset.loaded === 'true') {
                 listEl.style.display = 'flex';
                 btn.textContent = '예시 단어 닫기 ▲';
@@ -186,24 +258,44 @@ html_content = '''<!DOCTYPE html>
             `).join('');
         }
 
-        function renderKanji() {
+        function renderKanji(scrollToTop = false) {
             const listEl = document.getElementById('kanji-list');
             listEl.innerHTML = '';
             document.getElementById('loading').style.display = 'none';
 
             const data = kanjiData[currentTab];
             const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-            const pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+            
+            // Map original indices so we can show serial number and sort reliably
+            let pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE).map((k, idx) => {
+                return { ...k, originalIndex: startIdx + idx + 1 };
+            });
+            
+            // Sort: memorized items go to the bottom. Unmemorized items keep their original relative order.
+            pageData.sort((a, b) => {
+                const aMem = memorizedSet.has(a.kanji);
+                const bMem = memorizedSet.has(b.kanji);
+                if (aMem === bMem) return a.originalIndex - b.originalIndex;
+                return aMem ? 1 : -1;
+            });
 
             pageData.forEach(k => {
+                const isBookmarked = bookmarkSet.has(k.kanji);
+                const isMemorized = memorizedSet.has(k.kanji);
+                
                 const card = document.createElement('div');
-                card.className = 'kanji-card';
+                card.className = `kanji-card ${isBookmarked ? 'bookmarked' : ''} ${isMemorized ? 'memorized' : ''}`;
+                card.id = `kanji-${k.kanji}`;
                 
                 const onHTML = buildReadings(k.on);
                 const kunHTML = buildReadings(k.kun);
                 const means = k.meaning_ko || '의미 없음';
 
                 card.innerHTML = `
+                    <div class="card-actions">
+                        <button class="action-btn btn-bmk" onclick="toggleBookmark('${k.kanji}', this)" title="책갈피">🔖</button>
+                        <button class="action-btn btn-mem" onclick="toggleMemorized('${k.kanji}', this)" title="다 외움 (아래로)">&darr;</button>
+                    </div>
                     <div class="kanji-main">
                         <div class="kanji-char">${k.kanji}</div>
                         <div class="kanji-info">
@@ -222,6 +314,7 @@ html_content = '''<!DOCTYPE html>
                             <div class="kanji-meta">
                                 <span>총 ${k.strokes}획</span>
                                 <span>${k.grade ? k.grade + '학년' : '상용'}</span>
+                                <span class="serial-num">#${k.originalIndex}</span>
                             </div>
                         </div>
                     </div>
@@ -234,7 +327,7 @@ html_content = '''<!DOCTYPE html>
             });
 
             renderPagination(data.length);
-            window.scrollTo(0, 0);
+            if (scrollToTop) window.scrollTo(0, 0);
         }
 
         setTimeout(() => {
