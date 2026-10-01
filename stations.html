@@ -95,20 +95,43 @@
         .dark-mode .line-group { background: #1e1e1e; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
 
         .line-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             margin-bottom: 12px;
             color: #228be6;
             display: flex;
-            align-items: baseline;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
             border-bottom: 2px solid #f1f3f5;
             padding-bottom: 8px;
         }
         .dark-mode .line-title { color: #339af0; border-bottom-color: #333; }
 
-        .line-kana { font-size: 14px; font-weight: 400; color: #868e96; }
-        .line-ko { font-size: 14px; font-weight: 500; color: #495057; }
+        .line-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+        }
+        .dark-mode .line-logo { border-color: #1e1e1e; }
+        
+        .line-logo.square {
+            border-radius: 4px;
+            width: auto;
+            padding: 0 6px;
+        }
+
+        .line-kana { font-size: 15px; font-weight: 400; color: #868e96; }
+        .line-ko { font-size: 15px; font-weight: 500; color: #495057; }
         .dark-mode .line-ko { color: #adb5bd; }
 
         .station-list {
@@ -124,16 +147,21 @@
             padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         .dark-mode .station-item { background: #252525; border-color: #333; }
 
         .st-name { font-size: 16px; font-weight: 700; color: #343a40; }
         .dark-mode .st-name { color: #f8f9fa; }
-        .st-kana { font-size: 13px; color: #e64980; }
+        .st-kana { font-size: 15px; color: #e64980; }
         .dark-mode .st-kana { color: #ff6b6b; }
-        .st-ko { font-size: 14px; font-weight: 500; color: #495057; }
+        .st-ko { font-size: 16px; font-weight: 500; color: #495057; }
         .dark-mode .st-ko { color: #adb5bd; }
+
+        .fade {
+            opacity: 0.4;
+            font-size: 0.9em;
+        }
 
         .hidden { display: none !important; }
 
@@ -148,9 +176,9 @@
                 <a href="index.html" class="nav-item">가나</a>
                 <a href="kanji.html" class="nav-item">한자</a>
                 <a href="quiz.html" class="nav-item">퀴즈</a>
-                <a href="vocab.html" class="nav-item">기초단어장</a>
-                <a href="stations.html" class="nav-item active">도쿄전철역</a>
-                <a href="dashboard.html" class="nav-item">대시보드</a>
+                <a href="vocab.html" class="nav-item">단어</a>
+                <a href="stations.html" class="nav-item active">전철</a>
+                <a href="dashboard.html" class="nav-item">보드</a>
             </nav>
             <button class="toggle-btn" id="toggle-dark" onclick="toggleDark()" style="border-radius: 20px; padding: 6px 12px; border: 1px solid #ced4da; background: #fff; cursor: pointer;">다크 모드</button>
         </div>
@@ -191,6 +219,7 @@
                 const title = document.createElement('div');
                 title.className = 'line-title';
                 title.innerHTML = `
+                    ${line.logo_html || ''}
                     <span>${line.line_name}</span>
                     <span class="line-kana">${line.line_kana}</span>
                     <span class="line-ko">${line.line_ko}</span>
