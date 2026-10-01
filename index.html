@@ -26,7 +26,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 140px; /* Space for sticky header */
+            padding-top: 190px; /* Space for sticky header with nav */
         }
 
         .controls {
@@ -36,14 +36,40 @@
             width: 100%;
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
-            padding: 15px 10px;
+            padding: 10px 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 100;
             box-sizing: border-box;
+        }
+
+        /* ===== Navigation ===== */
+        .main-nav {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .nav-item {
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #495057;
+            font-size: 13px;
+            font-weight: 500;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background: #e9ecef; }
+        .nav-item.active {
+            background: #4dabf7;
+            color: white;
+            border-color: #339af0;
         }
 
         h1 {
@@ -160,15 +186,39 @@
             font-size: 14px;
             color: #868e96;
         }
+    
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --border-color: #333333;
+        }
+        body.dark-mode .controls { background-color: rgba(30,30,30,0.95); }
+        body.dark-mode .nav-item:not(.active) { background: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .nav-item:not(.active):hover { background: #3c3c3c; }
+        body.dark-mode .toggle-btn:not(.active) { background-color: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .pronunciation { color: #aaa; }
+        body.dark-mode .char-item:not(.empty-item):active { background-color: #333; }
+        body.dark-mode .info-card { background: #1e1e1e; border-color: #333; }
+        body.dark-mode .info-ex { background: #2c2c2c; }
+        body.dark-mode .info-ex-mean { color: #aaa; }
+        body.dark-mode footer { color: #666; }
     </style>
 </head>
 <body>
 
     <div class="controls">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-item active">🏠 오십음도</a>
+            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
+            <a href="quiz.html" class="nav-item">🧪 퀴즈</a>
+            <a href="dashboard.html" class="nav-item">📊 대시보드</a>
+        </nav>
         <h1>일본어 오십음도 (五十音図)</h1>
         <div class="audio-hint">아이폰의 경우 '무음 모드(매너 모드)'를 해제해야 소리가 납니다 🔊</div>
         <div class="toggles">
-            <div class="toggle-btn" id="toggle-katakana" onclick="toggleVisibility('katakana', this)">카타가나 가리기</div>
+            <div class="toggle-btn" id="toggle-katakana" onclick="toggleVisibility('katakana', this)">카타가나 가리기    <div class="toggle-btn" id="toggle-dark" onclick="toggleDarkMode()">🌙 다크 모드</div>
+        </div>
             <div class="toggle-btn" id="toggle-pronunciation" onclick="toggleVisibility('pronunciation', this)">발음 가리기</div>
         </div>
     </div>
@@ -314,6 +364,21 @@
                 btnElement.textContent = state.pronunciation ? '발음 가리기' : '발음 보이기';
             }
         }
+    
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark ? '1' : '0');
+            document.getElementById('toggle-dark').textContent = isDark ? '☀️ 라이트 모드' : '🌙 다크 모드';
+        }
+        if (localStorage.getItem('darkMode') === '1') {
+            document.body.classList.add('dark-mode');
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            if (document.body.classList.contains('dark-mode')) {
+                document.getElementById('toggle-dark').textContent = '☀️ 라이트 모드';
+            }
+        });
     </script>
 </body>
 </html>

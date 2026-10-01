@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퀴즈 — 일본어 학습</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --text: #343a40;
+            --card-bg: #ffffff;
+            --border: #e9ecef;
+            --hira: #1c7ed6;
+            --kata: #e64980;
+            --green: #2f9e44;
+            --red: #e03131;
+            --accent: #4dabf7;
+        }
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans JP", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Nav header */
+        .header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+        .main-nav {
+            display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%;
+        }
+        .nav-item {
+            padding: 6px 14px; border-radius: 20px; text-decoration: none;
+            color: #495057; font-size: 13px; font-weight: 500;
+            background: #f1f3f5; border: 1px solid #dee2e6; transition: all 0.2s;
+        }
+        .nav-item:hover { background: #e9ecef; }
+        .nav-item.active { background: var(--accent); color: white; border-color: #339af0; }
+        .header-title { font-size: 18px; font-weight: 700; }
+
+        /* Main area */
+        .main {
+            flex: 1;
+            padding: 90px 16px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Screens */
+        .screen { display: none; width: 100%; max-width: 480px; }
+        .screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+        /* ===== SETUP SCREEN ===== */
+        .setup-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .setup-label { font-size: 13px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .opt-btn {
+            flex: 1; min-width: 80px;
+            padding: 10px 8px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: center;
+        }
+        .opt-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .opt-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+        .count-msg { text-align: center; font-size: 13px; color: #868e96; }
+        .btn-start {
+            width: 100%; padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(77,171,247,0.4);
+        }
+        .btn-start:active { transform: scale(0.97); }
+
+        /* ===== QUIZ SCREEN ===== */
+        .progress-bar-wrap {
+            width: 100%; height: 6px;
+            background: #e9ecef;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 99px;
+            transition: width 0.3s;
+        }
+        .progress-info {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; font-weight: 600; color: #495057;
+        }
+        .score-chip {
+            background: #d3f9d8; color: #2f9e44;
+            padding: 3px 12px; border-radius: 20px;
+            font-weight: 700; font-size: 14px;
+        }
+
+        /* Flashcard */
+        .flashcard-wrap { perspective: 1000px; width: 100%; }
+        .flashcard {
+            width: 100%; min-height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.45s;
+            cursor: pointer;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .fc-face {
+            position: absolute; width: 100%; min-height: 200px;
+            backface-visibility: hidden;
+            border-radius: 22px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            gap: 6px;
+            padding: 24px;
+            border: 2px solid var(--border);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+        }
+        .fc-front { background: white; }
+        .fc-back { background: linear-gradient(135deg, #e8f4fd, #fce4ec); transform: rotateY(180deg); }
+        .fc-hint { font-size: 12px; color: #adb5bd; margin-top: 8px; }
+
+        /* MC / Listening question display */
+        .question-box {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 22px;
+            padding: 28px 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .listen-icon {
+            font-size: 56px;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+        .listen-icon:active { transform: scale(0.92); }
+        .listen-hint { font-size: 13px; color: #adb5bd; }
+
+        /* Shared kana display */
+        .disp-h { font-size: 64px; color: var(--hira); font-weight: 500; line-height: 1.1; }
+        .disp-h.sm { font-size: 48px; }
+        .disp-k { font-size: 26px; color: var(--kata); font-weight: 400; }
+        .disp-p { font-size: 34px; color: #2b8a3e; font-weight: 600; }
+
+        /* Audio button */
+        .audio-btn {
+            background: #f1f3f5; border: 1px solid #dee2e6;
+            padding: 8px 18px; border-radius: 20px;
+            font-size: 13px; cursor: pointer;
+            transition: all 0.2s; font-weight: 500;
+        }
+        .audio-btn:active { background: #dee2e6; }
+
+        /* MC options */
+        .mc-options {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; width: 100%;
+        }
+        .mc-btn {
+            padding: 18px 8px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: white;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mc-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+        .mc-btn.correct { background: #d3f9d8; border-color: var(--green); color: var(--green); }
+        .mc-btn.wrong { background: #ffe3e3; border-color: var(--red); color: var(--red); }
+        .mc-btn:disabled { cursor: default; }
+
+        /* Flashcard action buttons */
+        .fc-actions {
+            display: flex; gap: 12px; width: 100%;
+        }
+        .fc-actions.hidden { visibility: hidden; }
+        .btn-wrong-fc, .btn-correct-fc {
+            flex: 1; padding: 15px;
+            border: none; border-radius: 16px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-wrong-fc { background: #ffe3e3; color: var(--red); }
+        .btn-wrong-fc:active { background: #ffc9c9; }
+        .btn-correct-fc { background: #d3f9d8; color: var(--green); }
+        .btn-correct-fc:active { background: #b2f2bb; }
+
+        /* ===== RESULTS SCREEN ===== */
+        .result-hero {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 32px 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+        }
+        .result-pct { font-size: 64px; font-weight: 800; color: var(--accent); }
+        .result-grade { font-size: 22px; font-weight: 700; margin: 4px 0; }
+        .result-detail { font-size: 15px; color: #868e96; }
+        .wrong-section-title { font-size: 14px; font-weight: 700; color: #495057; padding: 4px 0; }
+        .wrong-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .wrong-chip {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .wrong-chip:active { transform: scale(0.95); }
+        .wrong-chip .wh { font-size: 26px; color: var(--hira); }
+        .wrong-chip .wk { font-size: 14px; color: var(--kata); }
+        .wrong-chip .wp { font-size: 13px; color: #495057; }
+        .perfect-msg { text-align: center; font-size: 16px; color: var(--green); font-weight: 700; padding: 12px; }
+        .result-actions { display: flex; gap: 10px; }
+        .btn-retry {
+            flex: 2; padding: 15px;
+            background: var(--accent); color: white;
+            border: none; border-radius: 16px;
+            font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-setup-link {
+            flex: 1; padding: 15px;
+            background: #f1f3f5; color: #495057;
+            border: none; border-radius: 16px;
+            font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+    
+        body.dark-mode {
+            --bg: #121212; --text: #e0e0e0; --card-bg: #1e1e1e; --border: #333333;
+        }
+        body.dark-mode .header { background: rgba(30,30,30,0.95); }
+        body.dark-mode .nav-item:not(.active) { background: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .nav-item:not(.active):hover { background: #3c3c3c; }
+        body.dark-mode .setup-card, body.dark-mode .question-box, body.dark-mode .result-hero, body.dark-mode .wrong-chip { background: #1e1e1e; border-color: #333; }
+        body.dark-mode .opt-btn { background: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .opt-btn:hover { border-color: var(--accent); color: var(--accent); }
+        body.dark-mode .mc-btn { background: #1e1e1e; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .mc-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+        body.dark-mode .mc-btn.correct { background: #194a24; border-color: var(--green); color: #8ce99a; }
+        body.dark-mode .mc-btn.wrong { background: #4a1919; border-color: var(--red); color: #ffa8a8; }
+        body.dark-mode .fc-front { background: #2c2c2c; border-color: #444; }
+        body.dark-mode .fc-back { background: linear-gradient(135deg, #1f2b38, #36222b); border-color: #444; }
+        body.dark-mode .btn-wrong-fc { background: #4a1919; color: #ffa8a8; }
+        body.dark-mode .btn-correct-fc { background: #194a24; color: #8ce99a; }
+        body.dark-mode .audio-btn { background: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .progress-bar-wrap { background: #333; }
+        body.dark-mode .score-chip { background: #194a24; color: #8ce99a; }
+        body.dark-mode .wrong-chip { background: #2c2c2c; border-color: #444; }
+        body.dark-mode .wrong-chip .wp { color: #aaa; }
+        body.dark-mode .btn-setup-link { background: #2c2c2c; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-item">🏠 오십음도</a>
+            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
+            <a href="quiz.html" class="nav-item active">🧪 퀴즈</a>
+            <a href="dashboard.html" class="nav-item">📊 대시보드</a>
+        </nav>
+        <div class="header-title">퀴즈 모드</div>
+    </div>
+
+    <div class="main">
+
+        <!-- ===== SETUP ===== -->
+        <div class="screen active" id="screen-setup">
+            <div class="setup-card">
+                <div class="setup-label">🎮 퀴즈 모드</div>
+                <div class="btn-group" id="mode-group">
+                    <button class="opt-btn active" data-val="flashcard" onclick="pick('mode', this)">🃏 플래시카드</button>
+                    <button class="opt-btn" data-val="mc" onclick="pick('mode', this)">🎯 4지선다</button>
+                    <button class="opt-btn" data-val="listen" onclick="pick('mode', this)">🎧 청취 퀴즈</button>
+                    <button class="opt-btn" data-val="time" onclick="pick('mode', this)">⏱ 타임어택</button>
+                </div>
+            </div>
+
+            <div class="setup-card">
+                <div class="setup-label">📚 학습 범위</div>
+                <div class="btn-group" id="range-group">
+                    <button class="opt-btn active" data-val="basic" onclick="pick('range', this)">기본 50음</button>
+                    <button class="opt-btn" data-val="dakuten" onclick="pick('range', this)">탁음·반탁음</button>
+                    <button class="opt-btn" data-val="youon" onclick="pick('range', this)">요음</button>
+                    <button class="opt-btn" data-val="all" onclick="pick('range', this)">전체</button>
+                    <button class="opt-btn" data-val="weak" onclick="pick('range', this)">🔥 약점 집중</button>
+                </div>
+                <div class="count-msg" id="count-msg" style="margin-top:12px">총 46개 출제</div>
+            </div>
+
+            <button class="btn-start" onclick="startQuiz()">▶ 시작하기</button>
+        </div>
+
+        <!-- ===== QUIZ ===== -->
+        <div class="screen" id="screen-quiz">
+            <div class="progress-info">
+                <span id="prog-text">1 / 46</span>
+                <span id="timer-text" style="display:none; color:var(--red); font-weight:700;">⏱ 00:00</span>
+                <span class="score-chip" id="score-chip">✓ 0</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
+            </div>
+            <div id="quiz-body"></div>
+        </div>
+
+        <!-- ===== RESULTS ===== -->
+        <div class="screen" id="screen-results">
+            <div class="result-hero" id="result-hero"></div>
+            <div id="wrong-list"></div>
+            <div class="result-actions">
+                <button class="btn-retry" onclick="startQuiz()">🔄 다시 풀기</button>
+                <button class="btn-setup-link" onclick="goSetup()">⚙ 설정 변경</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    // ===== TTS =====
+    const synth = window.speechSynthesis;
+    let jpVoice = null;
+    let audioUnlocked = false;
+    function unlockAudio() {
+        if (!audioUnlocked) {
+            const u = new SpeechSynthesisUtterance(''); u.volume = 0; synth.speak(u);
+            audioUnlocked = true;
+            document.body.removeEventListener('touchstart', unlockAudio);
+            document.body.removeEventListener('click', unlockAudio);
+        }
+    }
+    document.body.addEventListener('touchstart', unlockAudio);
+    document.body.addEventListener('click', unlockAudio);
+    function loadVoices() {
+        jpVoice = synth.getVoices().find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+    }
+    loadVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+    function speak(text) {
+        if (!text) return;
+        if (!jpVoice) loadVoices();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ja-JP'; u.rate = 0.85;
+        if (jpVoice) u.voice = jpVoice;
+        synth.cancel(); synth.speak(u);
+    }
+
+    // ===== KANA DATA =====
+    const KD = {
+        basic: [
+            {h:'あ',k:'ア',p:'아'},{h:'い',k:'イ',p:'이'},{h:'う',k:'ウ',p:'우'},{h:'え',k:'エ',p:'에'},{h:'お',k:'オ',p:'오'},
+            {h:'か',k:'カ',p:'카'},{h:'き',k:'キ',p:'키'},{h:'く',k:'ク',p:'쿠'},{h:'け',k:'ケ',p:'케'},{h:'こ',k:'コ',p:'코'},
+            {h:'さ',k:'サ',p:'사'},{h:'し',k:'シ',p:'시'},{h:'す',k:'ス',p:'스'},{h:'せ',k:'セ',p:'세'},{h:'そ',k:'ソ',p:'소'},
+            {h:'た',k:'タ',p:'타'},{h:'ち',k:'チ',p:'치'},{h:'つ',k:'ツ',p:'츠'},{h:'て',k:'テ',p:'테'},{h:'と',k:'ト',p:'토'},
+            {h:'な',k:'ナ',p:'나'},{h:'に',k:'ニ',p:'니'},{h:'ぬ',k:'ヌ',p:'누'},{h:'ね',k:'ネ',p:'네'},{h:'の',k:'ノ',p:'노'},
+            {h:'は',k:'ハ',p:'하'},{h:'ひ',k:'ヒ',p:'히'},{h:'ふ',k:'フ',p:'후'},{h:'へ',k:'ヘ',p:'헤'},{h:'ほ',k:'ホ',p:'호'},
+            {h:'ま',k:'マ',p:'마'},{h:'み',k:'ミ',p:'미'},{h:'む',k:'ム',p:'무'},{h:'め',k:'メ',p:'메'},{h:'も',k:'モ',p:'모'},
+            {h:'や',k:'ヤ',p:'야'},{h:'ゆ',k:'ユ',p:'유'},{h:'よ',k:'ヨ',p:'요'},
+            {h:'ら',k:'ラ',p:'라'},{h:'り',k:'リ',p:'리'},{h:'る',k:'ル',p:'루'},{h:'れ',k:'レ',p:'레'},{h:'ろ',k:'ロ',p:'로'},
+            {h:'わ',k:'ワ',p:'와'},{h:'を',k:'ヲ',p:'오'},{h:'ん',k:'ン',p:'응'},
+        ],
+        dakuten: [
+            {h:'が',k:'ガ',p:'가'},{h:'ぎ',k:'ギ',p:'기'},{h:'ぐ',k:'グ',p:'구'},{h:'げ',k:'ゲ',p:'게'},{h:'ご',k:'ゴ',p:'고'},
+            {h:'ざ',k:'ザ',p:'자'},{h:'じ',k:'ジ',p:'지'},{h:'ず',k:'ズ',p:'즈'},{h:'ぜ',k:'ゼ',p:'제'},{h:'ぞ',k:'ゾ',p:'조'},
+            {h:'だ',k:'ダ',p:'다'},{h:'ぢ',k:'ヂ',p:'지'},{h:'づ',k:'ヅ',p:'즈'},{h:'で',k:'デ',p:'데'},{h:'ど',k:'ド',p:'도'},
+            {h:'ば',k:'バ',p:'바'},{h:'び',k:'ビ',p:'비'},{h:'ぶ',k:'ブ',p:'부'},{h:'べ',k:'ベ',p:'베'},{h:'ぼ',k:'ボ',p:'보'},
+            {h:'ぱ',k:'パ',p:'파'},{h:'ぴ',k:'ピ',p:'피'},{h:'ぷ',k:'プ',p:'푸'},{h:'ぺ',k:'ペ',p:'페'},{h:'ぽ',k:'ポ',p:'포'},
+        ],
+        youon: [
+            {h:'きゃ',k:'キャ',p:'캬'},{h:'きゅ',k:'キュ',p:'큐'},{h:'きょ',k:'キョ',p:'쿄'},
+            {h:'しゃ',k:'シャ',p:'샤'},{h:'しゅ',k:'シュ',p:'슈'},{h:'しょ',k:'ショ',p:'쇼'},
+            {h:'ちゃ',k:'チャ',p:'차'},{h:'ちゅ',k:'チュ',p:'추'},{h:'ちょ',k:'チョ',p:'초'},
+            {h:'にゃ',k:'ニャ',p:'냐'},{h:'にゅ',k:'ニュ',p:'뉴'},{h:'にょ',k:'ニョ',p:'뇨'},
+            {h:'ひゃ',k:'ヒャ',p:'햐'},{h:'ひゅ',k:'ヒュ',p:'휴'},{h:'ひょ',k:'ヒョ',p:'효'},
+            {h:'みゃ',k:'ミャ',p:'먀'},{h:'みゅ',k:'ミュ',p:'뮤'},{h:'みょ',k:'ミョ',p:'묘'},
+            {h:'りゃ',k:'リャ',p:'랴'},{h:'りゅ',k:'リュ',p:'류'},{h:'りょ',k:'リョ',p:'료'},
+            {h:'ぎゃ',k:'ギャ',p:'갸'},{h:'ぎゅ',k:'ギュ',p:'규'},{h:'ぎょ',k:'ギョ',p:'교'},
+            {h:'じゃ',k:'ジャ',p:'자'},{h:'じゅ',k:'ジュ',p:'쥬'},{h:'じょ',k:'ジョ',p:'죠'},
+            {h:'びゃ',k:'ビャ',p:'뱌'},{h:'びゅ',k:'ビュ',p:'뷰'},{h:'びょ',k:'ビョ',p:'뵤'},
+            {h:'ぴゃ',k:'ピャ',p:'퍄'},{h:'ぴゅ',k:'ピュ',p:'퓨'},{h:'ぴょ',k:'ピョ',p:'표'},
+        ],
+    };
+
+    
+    if (localStorage.getItem('darkMode') === '1') document.body.classList.add('dark-mode');
+    
+    // Streak logic
+    let lastDate = localStorage.getItem('lastQuizDate');
+    let today = new Date().toDateString();
+    if (lastDate !== today) {
+        if (lastDate === new Date(Date.now() - 86400000).toDateString()) {
+            // Consecutive day
+        } else if (lastDate) {
+            localStorage.setItem('kanaStreak', '0');
+        }
+    }
+    
+    // ===== STATE =====
+    let cfg = { mode: 'flashcard', range: 'basic' };
+    let deck = [], idx = 0, correct = 0, wrong = 0, wrongCards = [];
+    let fcFlipped = false, mcAnswered = false;
+    let timerInterval = null, timeLeft = 0;
+    let listenPlayed = false;
+
+    const counts = { basic: 46, dakuten: 25, youon: 33, all: 104 };
+
+    // ===== SETUP =====
+    function pick(key, btn) {
+        cfg[key] = btn.dataset.val;
+        btn.closest('.btn-group').querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('count-msg').textContent = cfg.range === 'weak' ? "오답률 높은 글자 집중 출제" : '총 ' + counts[cfg.range] + '개 출제';
+    }
+
+    function buildPool() {
+        let pool = [];
+        if (cfg.range === 'basic' || cfg.range === 'all') pool = pool.concat(KD.basic);
+        if (cfg.range === 'dakuten' || cfg.range === 'all') pool = pool.concat(KD.dakuten);
+        if (cfg.range === 'youon' || cfg.range === 'all') pool = pool.concat(KD.youon);
+        return pool;
+    }
+
+    function startQuiz() {
+        deck = shuffle([...buildPool()]);
+        idx = 0; correct = 0; wrong = 0; wrongCards = [];
+        clearInterval(timerInterval);
+        if (cfg.mode === 'time') {
+            timeLeft = deck.length * 3; // 3 seconds per question
+            document.getElementById('timer-text').style.display = 'inline';
+            document.getElementById('timer-text').textContent = '⏱ ' + timeLeft + 's';
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-text').textContent = '⏱ ' + Math.max(0, timeLeft) + 's';
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('⏰ 시간 종료!');
+                    showResults();
+                }
+            }, 1000);
+        } else {
+            document.getElementById('timer-text').style.display = 'none';
+        }
+        showScreen('screen-quiz');
+        renderCard();
+    }
+
+    function goSetup() { showScreen('screen-setup'); }
+
+    // ===== SCREENS =====
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // ===== PROGRESS =====
+    function updateProgress() {
+        document.getElementById('prog-text').textContent = (idx + 1) + ' / ' + deck.length;
+        document.getElementById('score-chip').textContent = '✓ ' + correct;
+        document.getElementById('prog-bar').style.width = (idx / deck.length * 100) + '%';
+    }
+
+    // ===== RENDER =====
+    function renderCard() {
+        if (idx >= deck.length) { showResults(); return; }
+        updateProgress();
+        const card = deck[idx];
+        if (cfg.mode === 'flashcard') renderFlashcard(card);
+        else if (cfg.mode === 'mc') renderMC(card);
+        else if (cfg.mode === 'time') renderMC(card);
+        else renderListen(card);
+    }
+
+    // --- Flashcard ---
+    function renderFlashcard(card) {
+        fcFlipped = false;
+        document.getElementById('quiz-body').innerHTML = `
+            <div class="flashcard-wrap">
+                <div class="flashcard" id="fc" onclick="flipFC()">
+                    <div class="fc-face fc-front">
+                        <div class="disp-h${card.h.length > 1 ? ' sm' : ''}">${card.h}</div>
+                        <div class="disp-k">${card.k}</div>
+                        <div class="fc-hint">탭하여 발음 확인 ▾</div>
+                    </div>
+                    <div class="fc-face fc-back">
+                        <div class="disp-h${card.h.length > 1 ? ' sm' : ''}">${card.h}</div>
+                        <div class="disp-k">${card.k}</div>
+                        <div class="disp-p">${card.p}</div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:center">
+                <button class="audio-btn" onclick="speak('${esc(card.h)}')">🔊 듣기</button>
+            </div>
+            <div class="fc-actions hidden" id="fc-actions">
+                <button class="btn-wrong-fc" onclick="answerFC(false)">😅 몰랐다</button>
+                <button class="btn-correct-fc" onclick="answerFC(true)">✅ 알았다</button>
+            </div>`;
+    }
+
+    function flipFC() {
+        if (fcFlipped) return;
+        fcFlipped = true;
+        document.getElementById('fc').classList.add('flipped');
+        document.getElementById('fc').onclick = null;
+        document.getElementById('fc-actions').classList.remove('hidden');
+        speak(deck[idx].h);
+    }
+
+    function answerFC(isCorrect) {
+        if (isCorrect) { correct++; recordStat(deck[idx].h, true); } else { wrong++; wrongCards.push(deck[idx]); recordStat(deck[idx].h, false); }
+        idx++; renderCard();
+    }
+
+    // --- Multiple Choice ---
+    function renderMC(card) {
+        mcAnswered = false;
+        const pool = buildPool();
+        const opts = genOptions(card.p, pool.map(c => c.p), 4);
+
+        document.getElementById('quiz-body').innerHTML = `
+            <div class="question-box">
+                <div class="disp-h${card.h.length > 1 ? ' sm' : ''}">${card.h}</div>
+                <div class="disp-k">${card.k}</div>
+                <button class="audio-btn" style="margin-top:4px" onclick="speak('${esc(card.h)}')">🔊 듣기</button>
+            </div>
+            <div class="mc-options">
+                ${opts.map(o => `<button class="mc-btn" onclick="answerMC(this,'${esc(o)}','${esc(card.p)}')">${o}</button>`).join('')}
+            </div>`;
+    }
+
+    function answerMC(btn, chosen, correctP) {
+        if (mcAnswered) return;
+        mcAnswered = true;
+        const card = deck[idx];
+        document.querySelectorAll('.mc-btn').forEach(b => {
+            b.disabled = true;
+            if (b.textContent.trim() === correctP) b.classList.add('correct');
+            else if (b === btn) b.classList.add('wrong');
+        });
+        if (chosen === correctP) { correct++; speak(card.h); }
+        else { wrong++; wrongCards.push(card); speak(card.h); }
+        setTimeout(() => { idx++; renderCard(); }, 1300);
+    }
+
+    // --- Listening Quiz ---
+    function renderListen(card) {
+        mcAnswered = false;
+        listenPlayed = false;
+        const pool = buildPool();
+        const opts = genOptions(card.h, pool.map(c => c.h), 4);
+
+        document.getElementById('quiz-body').innerHTML = `
+            <div class="question-box" onclick="speakAndMark('${esc(card.h)}')">
+                <div class="listen-icon">🔊</div>
+                <div class="listen-hint">탭하여 발음 듣기</div>
+            </div>
+            <div class="mc-options">
+                ${opts.map(o => `<button class="mc-btn" onclick="answerListen(this,'${esc(o)}','${esc(card.h)}')" style="font-size:28px;color:var(--hira)">${o}</button>`).join('')}
+            </div>`;
+
+        // Auto-play after a moment
+        setTimeout(() => speak(card.h), 300);
+    }
+
+    function speakAndMark(h) { speak(h); }
+
+    function answerListen(btn, chosen, correctH) {
+        if (mcAnswered) return;
+        mcAnswered = true;
+        const card = deck[idx];
+        document.querySelectorAll('.mc-btn').forEach(b => {
+            b.disabled = true;
+            if (b.textContent.trim() === correctH) b.classList.add('correct');
+            else if (b === btn) b.classList.add('wrong');
+        });
+        if (chosen === correctH) { correct++; speak(card.h); }
+        else { wrong++; wrongCards.push(card); speak(card.h); }
+        setTimeout(() => { idx++; renderCard(); }, 1300);
+    }
+
+    // ===== RESULTS =====
+    function showResults() {
+        showScreen('screen-results');
+        clearInterval(timerInterval);
+        const total = deck.length;
+        const pct = Math.round((correct / total) * 100);
+        if (correct > 0 || wrong > 0) {
+            let lastD = localStorage.getItem('lastQuizDate');
+            let tod = new Date().toDateString();
+            if (lastD !== tod) {
+                let st = parseInt(localStorage.getItem('kanaStreak') || '0');
+                if (lastD === new Date(Date.now() - 86400000).toDateString()) {
+                    localStorage.setItem('kanaStreak', (st + 1).toString());
+                } else if (!lastD) {
+                    localStorage.setItem('kanaStreak', '1');
+                }
+                localStorage.setItem('lastQuizDate', tod);
+            }
+        }
+    
+        const grade =
+            pct === 100 ? '🏆 완벽! 최고예요!' :
+            pct >= 80 ? '⭐ 훌륭해요!' :
+            pct >= 60 ? '👍 잘했어요!' :
+            pct >= 40 ? '💪 계속 연습해봐요!' : '📖 다시 한번 도전!';
+
+        document.getElementById('result-hero').innerHTML = `
+            <div class="result-pct">${pct}%</div>
+            <div class="result-grade">${grade}</div>
+            <div class="result-detail">${correct} / ${total} 정답 &nbsp;·&nbsp; 오답 ${wrong}개</div>`;
+
+        const wl = document.getElementById('wrong-list');
+        if (wrongCards.length > 0) {
+            const unique = [...new Map(wrongCards.map(c => [c.h, c])).values()];
+            wl.innerHTML = `
+                <div class="wrong-section-title">다시 확인할 글자 (${unique.length}개)</div>
+                <div class="wrong-grid">
+                    ${unique.map(c => `
+                        <div class="wrong-chip" onclick="speak('${esc(c.h)}')">
+                            <div class="wh">${c.h}</div>
+                            <div class="wk">${c.k}</div>
+                            <div class="wp">${c.p}</div>
+                        </div>`).join('')}
+                </div>`;
+        } else {
+            wl.innerHTML = '<div class="perfect-msg">오답이 없어요! 🎉</div>';
+        }
+    }
+
+    
+    function recordStat(h, isCorrect) {
+        let stats = JSON.parse(localStorage.getItem('kanaStats') || '{}');
+        if (!stats[h]) stats[h] = {c:0, w:0};
+        if (isCorrect) stats[h].c++;
+        else stats[h].w++;
+        localStorage.setItem('kanaStats', JSON.stringify(stats));
+    }
+    
+    // ===== HELPERS =====
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function genOptions(correct, pool, n) {
+        // Unique wrong options (different string from correct)
+        const wrongs = shuffle([...new Set(pool.filter(p => p !== correct))]).slice(0, n - 1);
+        // If not enough unique wrongs, generate placeholders (shouldn't happen with full pool)
+        return shuffle([correct, ...wrongs]);
+    }
+
+    function esc(s) {
+        // Escape for HTML attribute single-quote safety
+        return s.replace(/'/g, '&#39;');
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 — 일본어 학습</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #343a40;
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --accent: #4dabf7;
+            --green: #2f9e44;
+            --red: #e03131;
+        }
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --border-color: #333333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans JP", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 15px; padding-top: 90px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(5px);
+            padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100;
+        }
+        body.dark-mode .header { background: rgba(30,30,30,0.95); }
+        .main-nav { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%; }
+        .nav-item {
+            padding: 6px 14px; border-radius: 20px; text-decoration: none;
+            color: #495057; font-size: 13px; font-weight: 500;
+            background: #f1f3f5; border: 1px solid #dee2e6; transition: all 0.2s;
+        }
+        body.dark-mode .nav-item { background: #2c2c2c; border-color: #444; color: #ccc; }
+        .nav-item.active { background: var(--accent); color: white; border-color: #339af0; }
+        body.dark-mode .nav-item.active { background: var(--accent); color: white; border-color: #339af0; }
+        
+        .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+        .stat-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .stat-title { font-size: 15px; font-weight: 700; color: #868e96; margin-bottom: 10px; }
+        .stat-value { font-size: 36px; font-weight: 800; color: var(--accent); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .heatmap-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+            margin-top: 15px;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-size: 18px; font-weight: 500;
+            background: #e9ecef; color: #495057;
+        }
+        body.dark-mode .heatmap-cell { background: #333; color: #ccc; }
+        
+        .cell-perfect { background: #b2f2bb !important; color: #000 !important; }
+        .cell-good { background: #d3f9d8 !important; color: #000 !important; }
+        .cell-bad { background: #ffe3e3 !important; color: #000 !important; }
+        .cell-worst { background: #ffa8a8 !important; color: #000 !important; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-item">🏠 오십음도</a>
+            <a href="dakuten.html" class="nav-item">📖 탁음·요음</a>
+            <a href="quiz.html" class="nav-item">🧪 퀴즈</a>
+            <a href="dashboard.html" class="nav-item active">📊 대시보드</a>
+        </nav>
+        <div style="font-weight:700;font-size:18px">통계 대시보드</div>
+    </div>
+
+    <div class="container">
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-title">연속 학습 (스트릭)</div>
+                <div class="stat-value" id="streak-val">0일 🔥</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">전체 정답률</div>
+                <div class="stat-value" id="accuracy-val">0%</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">가나 숙달도 히트맵</div>
+            <div style="font-size:12px;color:#868e96">초록색일수록 완벽하게 숙지한 글자입니다. 빨간색은 취약점입니다.</div>
+            <div class="heatmap-grid" id="heatmap"></div>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('darkMode') === '1') document.body.classList.add('dark-mode');
+        
+        const basic = ['あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','','ゆ','','よ','ら','り','る','れ','ろ','わ','','','','を','ん','','','',''];
+        
+        function loadStats() {
+            let stats = JSON.parse(localStorage.getItem('kanaStats') || '{}');
+            let streak = parseInt(localStorage.getItem('kanaStreak') || '0');
+            
+            document.getElementById('streak-val').textContent = streak + '일 🔥';
+            
+            let tTotal = 0, tCorrect = 0;
+            const heatmap = document.getElementById('heatmap');
+            
+            basic.forEach(char => {
+                if (!char) {
+                    let empty = document.createElement('div');
+                    heatmap.appendChild(empty);
+                    return;
+                }
+                
+                let s = stats[char] || {c:0, w:0};
+                let total = s.c + s.w;
+                tTotal += total; tCorrect += s.c;
+                
+                let el = document.createElement('div');
+                el.className = 'heatmap-cell';
+                el.textContent = char;
+                
+                if (total > 0) {
+                    let acc = s.c / total;
+                    if (acc >= 0.9) el.classList.add('cell-perfect');
+                    else if (acc >= 0.7) el.classList.add('cell-good');
+                    else if (acc >= 0.4) el.classList.add('cell-bad');
+                    else el.classList.add('cell-worst');
+                }
+                heatmap.appendChild(el);
+            });
+            
+            if (tTotal > 0) {
+                document.getElementById('accuracy-val').textContent = Math.round((tCorrect / tTotal) * 100) + '%';
+            }
+        }
+        loadStats();
+    </script>
+</body>
+</html>
