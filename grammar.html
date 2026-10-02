@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문법 학습 (GrammarCraft JP)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #343a40;
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --primary: #4dabf7;
+            --group1: #4dabf7; /* Blue */
+            --group2: #51cf66; /* Green */
+            --group3: #ff6b6b; /* Red */
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans JP", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 190px;
+        }
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .main-nav { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%; }
+        .nav-item {
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #495057;
+            font-size: 13px;
+            font-weight: 500;
+            background: #f1f3f5;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background: #e9ecef; }
+        .nav-item.active { background: #4dabf7; color: white; border-color: #339af0; }
+        h1 { font-size: 20px; margin: 0; text-align: center; font-weight: 700; }
+        .toggles { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .toggle-btn {
+            background-color: #f1f3f5;
+            border: 1px solid #ced4da;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .toggle-btn.active { background-color: var(--primary); color: white; border-color: #339af0; }
+        .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Grammar specific styles */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .verb-display { font-size: 40px; font-weight: 700; margin: 20px 0; display:flex; justify-content:center; }
+        .verb-stem { color: var(--text-color); }
+        .verb-suffix { color: var(--primary); transition: opacity 0.3s, transform 0.3s; }
+        .group-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: white; font-weight: bold; margin-bottom: 10px; }
+        .group1 { background-color: var(--group1); }
+        .group2 { background-color: var(--group2); }
+        .group3 { background-color: var(--group3); }
+        .action-btns { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap:wrap;}
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; background: #e9ecef; font-size: 16px; font-weight:600; cursor:pointer; color: #495057; }
+        .btn:hover { background: #dee2e6; }
+        .btn.correct { background: #51cf66; color: white; }
+        .btn.wrong { background: #ff6b6b; color: white; }
+
+        /* Particle Trap Styles */
+        .sentence-box { font-size: 24px; font-weight: 500; line-height: 1.8; margin-top:10px;}
+        .slot { display: inline-block; min-width: 50px; border-bottom: 2px dashed var(--primary); color: var(--primary); cursor: pointer; text-align: center; padding: 0 5px; }
+        .particle-opts { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .trap-explanation { margin-top: 20px; padding: 15px; background: #fff5f5; border-left: 4px solid #ff6b6b; text-align: left; font-size: 14px; display: none; }
+        
+        /* Pattern Builder Styles */
+        .block-area { display: flex; gap: 10px; justify-content: center; margin-top: 20px; align-items:center; }
+        .draggable-block { padding: 10px 15px; background: #fff3bf; border: 1px solid #fcc419; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .pattern-block { padding: 10px 15px; background: #e3fafc; border: 1px solid #3bc9db; border-radius: 8px; font-weight: bold; font-size: 18px; }
+        .connect-icon { font-size: 24px; color: #adb5bd; }
+
+        body.dark-mode {
+            --bg-color: #121212; --text-color: #e0e0e0; --card-bg: #1e1e1e; --border-color: #333333;
+        }
+        body.dark-mode .controls { background-color: rgba(30,30,30,0.95); }
+        body.dark-mode .nav-item:not(.active), body.dark-mode .toggle-btn:not(.active) { background: #2c2c2c; border-color: #444; color: #ccc; }
+        body.dark-mode .trap-explanation { background: #2c1a1a; }
+        body.dark-mode .btn { background: #2c2c2c; color: #ccc; }
+        body.dark-mode .draggable-block { background: #4d3f00; border-color:#d4a017; color:#fff;}
+        body.dark-mode .pattern-block { background: #0b4b57; border-color:#0c8599; color:#fff;}
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <nav class="main-nav">
+            <a href="index.html" class="nav-item">가나</a>
+            <a href="kanji.html" class="nav-item">한자</a>
+            <a href="quiz.html" class="nav-item">퀴즈</a>
+            <a href="vocab.html" class="nav-item">단어</a>
+            <a href="stations.html" class="nav-item">전철</a>
+            <a href="dashboard.html" class="nav-item">보드</a>
+            <a href="grammar.html" class="nav-item active">문법</a>
+        </nav>
+        <h1>GrammarCraft JP</h1>
+        <div class="toggles">
+            <div class="toggle-btn active" id="tab-btn-1" onclick="switchTab(1)">형태 (동사활용)</div>
+            <div class="toggle-btn" id="tab-btn-2" onclick="switchTab(2)">통사 (조사함정)</div>
+            <div class="toggle-btn" id="tab-btn-3" onclick="switchTab(3)">구문 (패턴조립)</div>
+        </div>
+    </div>
+
+    <div class="container" id="app">
+        <!-- Renders based on active tab -->
+    </div>
+
+    <script src="grammar_data.js"></script>
+    <script>
+        let currentTab = 1;
+        
+        // TTS Setup
+        const synth = window.speechSynthesis;
+        let japaneseVoice = null;
+        function loadVoices() {
+            const voices = synth.getVoices();
+            japaneseVoice = voices.find(voice => voice.lang.includes('ja') || voice.lang.includes('JP'));
+        }
+        loadVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        function playAudio(text) {
+            if (!text) return;
+            if (!japaneseVoice) loadVoices();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            if (japaneseVoice) utterance.voice = japaneseVoice;
+            synth.cancel();
+            synth.speak(utterance);
+        }
+
+        function switchTab(tabIndex) {
+            currentTab = tabIndex;
+            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-btn-' + tabIndex).classList.add('active');
+            renderTab();
+        }
+
+        function renderTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = '';
+            if (currentTab === 1) renderTab1(app);
+            else if (currentTab === 2) renderTab2(app);
+            else if (currentTab === 3) renderTab3(app);
+        }
+
+        // ================= Tab 1: Conjugation Gym =================
+        let cVerb = null;
+        function renderTab1(container) {
+            cVerb = grammarData.conjugation_data[Math.floor(Math.random() * grammarData.conjugation_data.length)];
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const groupText = cVerb.group === 1 ? '1그룹' : (cVerb.group === 2 ? '2그룹' : '3그룹(불규칙)');
+            
+            let html = `
+                <div style="font-size: 14px; color: #868e96; margin-bottom: 5px;">JLPT N5 필수 동사 타임어택</div>
+                <div class="group-badge group${cVerb.group}">${groupText}</div>
+                <div style="font-size: 16px; margin-top:5px;">${cVerb.meaning_ko}</div>
+                <div class="verb-display" onclick="playAudio('${cVerb.dictionary_form}')">
+                    <span class="verb-stem">${cVerb.stem}</span>
+                    <span class="verb-suffix" id="verb-suffix">${cVerb.suffix_default}</span>
+                </div>
+                <div style="font-size:14px; color:#adb5bd; margin-bottom: 10px;">변경할 형태를 선택하세요:</div>
+                <div class="action-btns">
+                    <button class="btn" onclick="animateConjugation('te')">て형 (~하고)</button>
+                    <button class="btn" onclick="animateConjugation('ta')">た형 (~했다)</button>
+                    <button class="btn" onclick="animateConjugation('nai')">ない형 (~안하다)</button>
+                    <button class="btn" onclick="animateConjugation('masu')">ます형 (~합니다)</button>
+                </div>
+                <div class="action-btns" style="margin-top:15px;">
+                    <button class="btn" style="background:#4dabf7; color:white; width:100%;" onclick="renderTab1(document.getElementById('app'))">다음 동사 (Next)</button>
+                </div>
+            `;
+            card.innerHTML = html;
+            container.appendChild(card);
+        }
+
+        window.animateConjugation = function(formKey) {
+            if (!cVerb.forms || !cVerb.forms[formKey]) {
+                alert("해당 형태의 데이터가 없습니다.");
+                return;
+            }
+            const targetData = cVerb.forms[formKey];
+            const suffixEl = document.getElementById('verb-suffix');
+            
+            // Animation out
+            suffixEl.style.transform = 'translateY(-10px)';
+            suffixEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                suffixEl.textContent = targetData.suffix_changed;
+                suffixEl.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    suffixEl.style.transform = 'translateY(0)';
+                    suffixEl.style.opacity = '1';
+                    playAudio(targetData.value);
+                }, 50);
+            }, 300);
+        }
+
+        // ================= Tab 2: Particle Matrix =================
+        let pData = null;
+        function renderTab2(container) {
+            pData = grammarData.particle_data[Math.floor(Math.random() * grammarData.particle_data.length)];
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Replace slot in sentence
+            const parts = pData.sentence_skeleton.split("___");
+            let sentenceHtml = '';
+            for(let i=0; i<parts.length; i++){
+                sentenceHtml += parts[i];
+                if (i < parts.length - 1) {
+                    const isTarget = (i === pData.trap_point.target_slot);
+                    sentenceHtml += `<span class="slot" id="slot-${i}" onclick="${isTarget ? 'showParticleOpts()' : ''}">___</span>`;
+                }
+            }
+
+            let html = `
+                <div style="font-size: 14px; color: #868e96; margin-bottom: 10px;">L1(모어) 간섭 필터 함정 회피 퀴즈</div>
+                <div style="font-size: 16px; font-weight:bold; color: #4dabf7;">"${pData.translation_ko}"</div>
+                <div class="sentence-box">${sentenceHtml}</div>
+                
+                <div class="particle-opts" id="p-opts" style="display:none;"></div>
+                <div class="trap-explanation" id="trap-expl">
+                    <strong>⚠️ 함정 주의:</strong><br>
+                    ${pData.trap_point.explanation}
+                </div>
+                <div class="action-btns" style="margin-top:20px;">
+                    <button class="btn" style="background:#4dabf7; color:white; width:100%;" onclick="renderTab2(document.getElementById('app'))">다음 예문 (Next)</button>
+                </div>
+            `;
+            card.innerHTML = html;
+            container.appendChild(card);
+            
+            // Auto fill non-target slots
+            for(let i=0; i<parts.length - 1; i++){
+                if (i !== pData.trap_point.target_slot && pData.correct_particles[i] !== undefined) {
+                    document.getElementById(`slot-${i}`).textContent = pData.correct_particles[i];
+                    document.getElementById(`slot-${i}`).style.color = 'var(--text-color)';
+                    document.getElementById(`slot-${i}`).style.borderBottom = 'none';
+                    document.getElementById(`slot-${i}`).style.cursor = 'default';
+                }
+            }
+        }
+
+        window.showParticleOpts = function() {
+            const optsDiv = document.getElementById('p-opts');
+            optsDiv.style.display = 'flex';
+            optsDiv.innerHTML = '';
+            
+            const options = pData.options[pData.trap_point.target_slot] || ["は", "が", "を", "に", "で"];
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkParticle(opt, btn);
+                optsDiv.appendChild(btn);
+            });
+        }
+        
+        window.checkParticle = function(selected, btnEl) {
+            const correctOpt = pData.correct_particles[pData.trap_point.target_slot];
+            if (selected === correctOpt) {
+                btnEl.classList.add('correct');
+                document.getElementById(`slot-${pData.trap_point.target_slot}`).textContent = selected;
+                document.getElementById(`slot-${pData.trap_point.target_slot}`).style.color = '#51cf66';
+                document.getElementById('trap-expl').style.display = 'none';
+                playAudio(pData.sentence_skeleton.split("___").map((p, i) => i === pData.trap_point.target_slot ? selected : (pData.correct_particles[i] || p)).join("").replace(/___/g, ""));
+            } else {
+                btnEl.classList.add('wrong');
+                if (selected === pData.trap_point.distractor_l1) {
+                    document.getElementById('trap-expl').style.display = 'block';
+                }
+            }
+        }
+
+        // ================= Tab 3: Pattern Builder =================
+        let patData = null;
+        function renderTab3(container) {
+            patData = grammarData.pattern_data[Math.floor(Math.random() * grammarData.pattern_data.length)];
+            const drill = patData.drill_sentences[0]; // using first drill sentence
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let html = `
+                <div style="font-size: 14px; color: #868e96; margin-bottom: 10px;">구문 블록 조립기 (N4 기능어)</div>
+                <div style="font-size: 18px; font-weight:bold;">${patData.translation_ko}</div>
+                <div style="font-size: 12px; color: #ff6b6b; margin-top:5px;">요구 형태: ${patData.connection_rule.required_form}</div>
+                
+                <div class="block-area">
+                    <div class="draggable-block" id="verb-block" onclick="morphVerb()">${drill.base_verb} (Tap!)</div>
+                    <div class="connect-icon">+</div>
+                    <div class="pattern-block">${patData.pattern_name.replace('〜', '')}</div>
+                </div>
+                
+                <div id="pattern-result" style="margin-top: 25px; font-size: 22px; font-weight:bold; color:var(--primary); opacity:0; transition: opacity 0.5s;">
+                    ${drill.full_sentence}
+                </div>
+                
+                <div class="action-btns" style="margin-top:30px;">
+                    <button class="btn" style="background:#4dabf7; color:white; width:100%;" onclick="renderTab3(document.getElementById('app'))">다음 구문 (Next)</button>
+                </div>
+            `;
+            card.innerHTML = html;
+            container.appendChild(card);
+        }
+        
+        window.morphVerb = function() {
+            const verbBlock = document.getElementById('verb-block');
+            verbBlock.textContent = patData.drill_sentences[0].verb_target_form;
+            verbBlock.style.background = '#d3f9d8';
+            verbBlock.style.borderColor = '#40c057';
+            
+            setTimeout(() => {
+                document.getElementById('pattern-result').style.opacity = '1';
+                playAudio(patData.drill_sentences[0].full_sentence);
+            }, 300);
+        }
+
+        // Init dark mode check
+        if (localStorage.getItem('darkMode') === '1') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Initial render
+        renderTab();
+    </script>
+</body>
+</html>
