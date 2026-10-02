@@ -57,22 +57,15 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <nav class="main-nav">
-            <a href="index.html" class="nav-item">가나</a>
-            <a href="kanji.html" class="nav-item">한자</a>
-            <a href="quiz.html" class="nav-item">퀴즈</a>
-            <a href="vocab.html" class="nav-item active">단어</a>
-            <a href="stations.html" class="nav-item">전철</a>
-            <a href="dashboard.html" class="nav-item">보드</a>
-            <a href="grammar.html" class="nav-item">문법</a>
-            </nav>
-        <div class="header-title">
-            기초 2000 단어장 <span class="app-version">v261002 R2</span>
-        </div>
-    </div>
-
+    <div id="app-header-mount"></div>
+    <script src="header.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            AppHeader.init({ title: '기초 2000 단어장' });
+        });
+    </script>
     <div class="dashboard">
+
         <div>단어 진행률</div>
         <div class="progress-container">
             <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>

@@ -171,21 +171,14 @@
 </head>
 <body>
     <div id="app">
-        <div class="header-top">
-            <nav class="main-nav">
-                <a href="index.html" class="nav-item">가나</a>
-                <a href="kanji.html" class="nav-item">한자</a>
-                <a href="quiz.html" class="nav-item">퀴즈</a>
-                <a href="vocab.html" class="nav-item">단어</a>
-                <a href="stations.html" class="nav-item active">전철</a>
-                <a href="dashboard.html" class="nav-item">보드</a>
-                <a href="grammar.html" class="nav-item">문법</a>
-            </nav>
-        <div style="text-align:center; font-size:10px; color:#868e96; margin-top:4px;">v261002 R2</div>
-            <button class="toggle-btn" id="toggle-dark" onclick="toggleDark()" style="border-radius: 20px; padding: 6px 12px; border: 1px solid #ced4da; background: #fff; cursor: pointer;">다크 모드</button>
-        </div>
+            <div id="app-header-mount"></div>
+    <script src="header.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            AppHeader.init({ title: '도쿄 전철역' });
+        });
+    </script>
 
-        <h1>도쿄도 지하철/열차역 리스트</h1>
 
         <input type="text" id="searchInput" class="search-bar" placeholder="노선명 또는 역명 (한국어/일본어) 검색..." onkeyup="filterStations()">
 

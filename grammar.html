@@ -122,25 +122,20 @@
     </style>
 </head>
 <body>
-    <div class="controls">
-        <nav class="main-nav">
-            <a href="index.html" class="nav-item">가나</a>
-            <a href="kanji.html" class="nav-item">한자</a>
-            <a href="quiz.html" class="nav-item">퀴즈</a>
-            <a href="vocab.html" class="nav-item">단어</a>
-            <a href="stations.html" class="nav-item">전철</a>
-            <a href="dashboard.html" class="nav-item">보드</a>
-            <a href="grammar.html" class="nav-item active">문법</a>
-        </nav>
-        <h1>GrammarCraft JP</h1>
-        <div class="toggles">
-            <div class="toggle-btn active" id="tab-btn-1" onclick="switchTab(1)">형태 (동사활용)</div>
-            <div class="toggle-btn" id="tab-btn-2" onclick="switchTab(2)">통사 (조사함정)</div>
-            <div class="toggle-btn" id="tab-btn-3" onclick="switchTab(3)">구문 (패턴조립)</div>
-        </div>
-    </div>
-
+    <div id="page-specific-toggles" style="display:none;">
+<div class="toggle-btn active" id="tab-btn-1" onclick="switchTab(1)">형태 (동사활용)</div>
+<div class="toggle-btn" id="tab-btn-2" onclick="switchTab(2)">통사 (조사함정)</div>
+<div class="toggle-btn" id="tab-btn-3" onclick="switchTab(3)">구문 (패턴조립)</div>
+</div>
+    <div id="app-header-mount"></div>
+    <script src="header.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            AppHeader.init({ title: '문법 (GrammarCraft)' });
+        });
+    </script>
     <div class="container" id="app">
+
         <!-- Renders based on active tab -->
     </div>
 
