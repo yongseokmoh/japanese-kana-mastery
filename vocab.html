@@ -3,47 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>기초 단어장 — 일본어 학습</title>
+    <title>단어장 (2,000단어) — 일본어 학습</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8f9fa; --text: #343a40; --card: #ffffff; --border: #e9ecef; --accent: #4dabf7; }
-        body.dark-mode { --bg: #121212; --text: #e0e0e0; --card: #1e1e1e; --border: #333333; }
-        body { font-family: "Noto Sans KR", "Noto Sans JP", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-top: 90px; display: flex; flex-direction: column; align-items: center; }
-        .header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; }
+        :root { --bg: #f8f9fa; --text: #343a40; --card: #ffffff; --border: #e9ecef; --accent: #4dabf7; --accent-hover: #339af0; }
+        body.dark-mode { --bg: #121212; --text: #e0e0e0; --card: #1e1e1e; --border: #333333; --accent: #339af0; --accent-hover: #4dabf7; }
+        body { font-family: "Noto Sans KR", "Noto Sans JP", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; padding-top: 110px; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 100; }
         body.dark-mode .header { background: rgba(30,30,30,0.95); }
         .main-nav { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%; }
         .nav-item { padding: 6px 14px; border-radius: 20px; text-decoration: none; color: #495057; font-size: 13px; font-weight: 500; background: #f1f3f5; border: 1px solid #dee2e6; }
         body.dark-mode .nav-item { background: #2c2c2c; border-color: #444; color: #ccc; }
-        .nav-item.active { background: var(--accent); color: white; border-color: #339af0; }
+        .nav-item.active { background: var(--accent); color: white; border-color: var(--accent-hover); }
         
-        .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
-        .vocab-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .vocab-icon { font-size: 40px; }
-        .vocab-info { flex: 1; }
-        .vocab-jp { font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-        .vocab-read { font-size: 14px; color: #868e96; margin-bottom: 2px; }
-        .vocab-kr { font-size: 16px; font-weight: 500; }
-        .btn-play { background: #f1f3f5; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
-        body.dark-mode .btn-play { background: #333; }
+        .header-title { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .app-version { font-size: 10px; font-weight: 400; color: #868e96; background: #e9ecef; padding: 2px 6px; border-radius: 10px; }
+        body.dark-mode .app-version { background: #333; color: #aaa; }
+
+        .dashboard { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .progress-container { flex: 1; margin: 0 20px; }
+        .progress-bar-bg { width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+        .progress-text { font-size: 12px; font-weight: 500; margin-top: 5px; text-align: center; color: #868e96; }
+
+        .container { width: 100%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; perspective: 1000px; }
+        
+        .vocab-card-container { width: 100%; height: 160px; perspective: 1000px; cursor: pointer; }
+        .vocab-card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .vocab-card.is-flipped { transform: rotateY(180deg); }
+        
+        .vocab-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); border: 1px solid var(--border); padding: 15px; box-sizing: border-box; text-align: center; }
+        .vocab-face.back { transform: rotateY(180deg); background: #f8f9fa; border: 2px solid var(--accent); }
+        body.dark-mode .vocab-face.back { background: #222; }
+
+        .vocab-icon { font-size: 32px; position: absolute; top: 10px; left: 10px; opacity: 0.2; }
+        .vocab-jp { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .vocab-read { font-size: 14px; color: #868e96; margin-bottom: 5px; }
+        .vocab-kr { font-size: 20px; font-weight: 700; color: var(--accent); }
+        
+        .btn-play { position: absolute; bottom: 10px; right: 10px; background: #f1f3f5; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: background 0.2s; }
+        .btn-play:hover { background: #e9ecef; }
+        body.dark-mode .btn-play { background: #333; color: white; }
+        body.dark-mode .btn-play:hover { background: #444; }
+
+        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 20px; width: 100%; max-width: 800px; flex-wrap: wrap; }
+        .page-btn { padding: 8px 16px; border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .page-btn:hover { background: var(--border); }
+        .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .instruction { font-size: 13px; color: #868e96; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
 <body>
     <div class="header">
         <nav class="main-nav">
-                <a href="index.html" class="nav-item">가나</a>
-                <a href="kanji.html" class="nav-item">한자</a>
-                <a href="quiz.html" class="nav-item">퀴즈</a>
-                <a href="vocab.html" class="nav-item active">단어</a>
-                <a href="stations.html" class="nav-item">전철</a>
-                <a href="dashboard.html" class="nav-item">보드</a>
-            </nav>
-        <div style="font-weight:700;font-size:18px">브릿지 콘텐츠 (기초 단어장)</div>
+            <a href="index.html" class="nav-item">가나</a>
+            <a href="kanji.html" class="nav-item">한자</a>
+            <a href="quiz.html" class="nav-item">퀴즈</a>
+            <a href="vocab.html" class="nav-item active">단어</a>
+            <a href="stations.html" class="nav-item">전철</a>
+            <a href="dashboard.html" class="nav-item">보드</a>
+        </nav>
+        <div class="header-title">
+            기초 2000 단어장 <span class="app-version">v261002 R2</span>
+        </div>
     </div>
+
+    <div class="dashboard">
+        <div>단어 진행률</div>
+        <div class="progress-container">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+            <div class="progress-text" id="progress-text">0 / 2000</div>
+        </div>
+        <button class="page-btn" onclick="resetProgress()" style="padding: 4px 8px; font-size:12px;">초기화</button>
+    </div>
+
+    <div class="instruction">💡 카드를 클릭하면 뜻을 확인할 수 있습니다.</div>
 
     <div class="container" id="vocab-list">
         <!-- Content injected by JS -->
     </div>
 
+    <div class="pagination" id="pagination">
+        <!-- Pagination buttons -->
+    </div>
+
+    <script src="vocab_data.js?v=261002R2" charset="utf-8"></script>
     <script>
         if (localStorage.getItem('darkMode') === '1') document.body.classList.add('dark-mode');
         
@@ -53,38 +100,157 @@
         loadVoices();
         if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
         
-        function playVocab(text) {
+        function playVocab(event, text) {
+            event.stopPropagation(); // Prevent flipping when clicking play
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'ja-JP'; if(jpVoice) u.voice = jpVoice;
             synth.cancel(); synth.speak(u);
         }
 
-        const words = [
-            { jp: 'こんにちは', read: '곤니치와 (Konnichiwa)', kr: '안녕하세요 (낮)', icon: '☀️' },
-            { jp: 'ありがとう', read: '아리가토- (Arigatou)', kr: '고맙습니다', icon: '🙏' },
-            { jp: 'さようなら', read: '사요-나라 (Sayounara)', kr: '안녕히 가세요', icon: '👋' },
-            { jp: 'はい', read: '하이 (Hai)', kr: '네', icon: '⭕' },
-            { jp: 'いいえ', read: '이-에 (Iie)', kr: '아니요', icon: '❌' },
-            { jp: 'おいしい', read: '오이시- (Oishii)', kr: '맛있다', icon: '🍣' },
-            { jp: 'ねこ', read: '네코 (Neko)', kr: '고양이', icon: '🐱' },
-            { jp: 'いぬ', read: '이누 (Inu)', kr: '개', icon: '🐶' }
-        ];
+        let words = typeof vocabData !== 'undefined' ? vocabData : [];
+        if (words.length === 0) {
+            words = [
+                { jp: 'こんにちは', read: '곤니치와 (Konnichiwa)', kr: '안녕하세요 (낮)', icon: '☀️' },
+                { jp: 'ありがとう', read: '아리가토- (Arigatou)', kr: '고맙습니다', icon: '🙏' },
+                { jp: 'データ로드중', read: '데이터 로드중', kr: '잠시만 기다려주세요', icon: '⏳' }
+            ];
+        }
 
-        const list = document.getElementById('vocab-list');
-        words.forEach(w => {
-            const el = document.createElement('div');
-            el.className = 'vocab-card';
-            el.innerHTML = `
-                <div class="vocab-icon">${w.icon}</div>
-                <div class="vocab-info">
-                    <div class="vocab-jp">${w.jp}</div>
-                    <div class="vocab-read">${w.read}</div>
-                    <div class="vocab-kr">${w.kr}</div>
-                </div>
-                <button class="btn-play" onclick="playVocab('${w.jp}')">🔊</button>
-            `;
-            list.appendChild(el);
-        });
+        const ITEMS_PER_PAGE = 40;
+        let currentPage = 1;
+        const totalPages = Math.ceil(words.length / ITEMS_PER_PAGE);
+        
+        let learnedWords = JSON.parse(localStorage.getItem('learnedVocab') || '[]');
+
+        function updateProgress() {
+            const pct = (learnedWords.length / words.length) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').innerText = `${learnedWords.length} / ${words.length} (${pct.toFixed(1)}%)`;
+        }
+
+        function toggleLearned(wordJp, isLearned) {
+            if (isLearned && !learnedWords.includes(wordJp)) {
+                learnedWords.push(wordJp);
+            } else if (!isLearned && learnedWords.includes(wordJp)) {
+                learnedWords = learnedWords.filter(w => w !== wordJp);
+            }
+            localStorage.setItem('learnedVocab', JSON.stringify(learnedWords));
+            updateProgress();
+        }
+        
+        function resetProgress() {
+            if(confirm('학습 진행률을 초기화하시겠습니까?')) {
+                learnedWords = [];
+                localStorage.setItem('learnedVocab', '[]');
+                updateProgress();
+                renderPage(currentPage);
+            }
+        }
+
+        function renderPage(page) {
+            currentPage = page;
+            const list = document.getElementById('vocab-list');
+            list.innerHTML = '';
+            
+            const startIdx = (page - 1) * ITEMS_PER_PAGE;
+            const endIdx = Math.min(startIdx + ITEMS_PER_PAGE, words.length);
+            const pageWords = words.slice(startIdx, endIdx);
+
+            pageWords.forEach(w => {
+                const el = document.createElement('div');
+                el.className = 'vocab-card-container';
+                
+                const isLearned = learnedWords.includes(w.jp);
+                
+                el.innerHTML = `
+                    <div class="vocab-card" onclick="this.classList.toggle('is-flipped'); toggleLearned('${w.jp.replace(/'/g, "\\'")}', this.classList.contains('is-flipped'))">
+                        <div class="vocab-face front">
+                            <div class="vocab-icon">${w.icon || '🎌'}</div>
+                            <div class="vocab-jp">${w.jp}</div>
+                            <div class="vocab-read">${w.read}</div>
+                            <button class="btn-play" onclick="playVocab(event, '${w.jp.replace(/'/g, "\\'")}')">🔊</button>
+                        </div>
+                        <div class="vocab-face back">
+                            <div class="vocab-icon">${w.icon || '🎌'}</div>
+                            <div class="vocab-kr">${w.kr}</div>
+                        </div>
+                    </div>
+                `;
+                
+                if (isLearned) {
+                    el.querySelector('.vocab-card').classList.add('is-flipped');
+                }
+
+                list.appendChild(el);
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const pag = document.getElementById('pagination');
+            pag.innerHTML = '';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerText = '이전';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => renderPage(currentPage - 1);
+            pag.appendChild(prevBtn);
+
+            // Calculate visible page numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (currentPage <= 3) endPage = Math.min(totalPages, 5);
+            if (currentPage >= totalPages - 2) startPage = Math.max(1, totalPages - 4);
+
+            if (startPage > 1) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn';
+                btn.innerText = '1';
+                btn.onclick = () => renderPage(1);
+                pag.appendChild(btn);
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.innerText = '...';
+                    dots.style.alignSelf = 'center';
+                    pag.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                btn.innerText = i;
+                btn.onclick = () => renderPage(i);
+                pag.appendChild(btn);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.innerText = '...';
+                    dots.style.alignSelf = 'center';
+                    pag.appendChild(dots);
+                }
+                const btn = document.createElement('button');
+                btn.className = 'page-btn';
+                btn.innerText = totalPages;
+                btn.onclick = () => renderPage(totalPages);
+                pag.appendChild(btn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerText = '다음';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => renderPage(currentPage + 1);
+            pag.appendChild(nextBtn);
+        }
+
+        updateProgress();
+        renderPage(1);
     </script>
 </body>
 </html>
