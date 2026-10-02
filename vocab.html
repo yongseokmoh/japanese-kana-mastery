@@ -80,7 +80,7 @@
         <button class="page-btn" onclick="resetProgress()" style="padding: 4px 8px; font-size:12px;">초기화</button>
     </div>
 
-    <div class="instruction">💡 카드를 클릭하면 뜻을 확인할 수 있습니다.</div>
+    <div class="instruction">💡 카드를 클릭하면 '학습 완료'로 표시되며 진행률이 올라갑니다.</div>
 
     <div class="container" id="vocab-list">
         <!-- Content injected by JS -->
@@ -168,11 +168,12 @@
                             <div class="vocab-icon">${w.icon || '🎌'}</div>
                             <div class="vocab-jp">${w.jp}</div>
                             <div class="vocab-read">${w.read}</div>
+                            <div class="vocab-kr-front" style="font-size: 16px; font-weight: 700; color: var(--accent); margin-top: 5px;">${w.kr}</div>
                             <button class="btn-play" onclick="playVocab(event, '${w.jp.replace(/'/g, "\\'")}')">🔊</button>
                         </div>
                         <div class="vocab-face back">
-                            <div class="vocab-icon">${w.icon || '🎌'}</div>
-                            <div class="vocab-kr">${w.kr}</div>
+                            <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                            <div style="font-size: 18px; font-weight: 700; color: var(--accent);">학습 완료</div>
                         </div>
                     </div>
                 `;
