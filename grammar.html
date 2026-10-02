@@ -202,6 +202,10 @@
                     <span class="verb-stem">${cVerb.stem}</span>
                     <span class="verb-suffix" id="verb-suffix">${cVerb.suffix_default}</span>
                 </div>
+                <div style="margin-top: -15px; margin-bottom: 15px; font-size: 15px;">
+                    <span id="verb-reading" style="color: #495057; margin-right: 8px;">${cVerb.reading}</span>
+                    <span id="verb-reading-ko" style="color: #868e96;">[${cVerb.reading_ko}]</span>
+                </div>
                 <div style="font-size:14px; color:#adb5bd; margin-bottom: 10px;">변경할 형태를 선택하세요:</div>
                 <div class="action-btns">
                     <button class="btn" onclick="animateConjugation('te')">て형 (~하고)</button>
@@ -224,18 +228,27 @@
             }
             const targetData = cVerb.forms[formKey];
             const suffixEl = document.getElementById('verb-suffix');
+            const readingEl = document.getElementById('verb-reading');
+            const readingKoEl = document.getElementById('verb-reading-ko');
             
             // Animation out
             suffixEl.style.transform = 'translateY(-10px)';
             suffixEl.style.opacity = '0';
+            if (readingEl) readingEl.style.opacity = '0';
+            if (readingKoEl) readingKoEl.style.opacity = '0';
             
             setTimeout(() => {
                 suffixEl.textContent = targetData.suffix_changed;
                 suffixEl.style.transform = 'translateY(10px)';
                 
+                if (readingEl) readingEl.textContent = targetData.value_kana;
+                if (readingKoEl) readingKoEl.textContent = "[" + targetData.value_ko + "]";
+                
                 setTimeout(() => {
                     suffixEl.style.transform = 'translateY(0)';
                     suffixEl.style.opacity = '1';
+                    if (readingEl) readingEl.style.opacity = '1';
+                    if (readingKoEl) readingKoEl.style.opacity = '1';
                     playAudio(targetData.value);
                 }, 50);
             }, 300);
@@ -263,6 +276,11 @@
             let html = `
                 <div style="font-size: 14px; color: #868e96; margin-bottom: 10px;">L1(모어) 간섭 필터 함정 회피 퀴즈</div>
                 <div style="font-size: 16px; font-weight:bold; color: #4dabf7;">"${pData.translation_ko}"</div>
+                
+                <div style="margin-top: 10px; font-size: 14px; color: #868e96;" id="particle-reading-ko">
+                    [${pData.sentence_skeleton_ko}]
+                </div>
+
                 <div class="sentence-box">${sentenceHtml}</div>
                 
                 <div class="particle-opts" id="p-opts" style="display:none;"></div>
@@ -303,6 +321,8 @@
             });
         }
         
+        const particleToKo = { "は": "와", "が": "가", "を": "오", "に": "니", "で": "데", "へ": "에", "と": "토", "から": "카라", "まで": "마데", "も": "모", "や": "야" };
+
         window.checkParticle = function(selected, btnEl) {
             const correctOpt = pData.correct_particles[pData.trap_point.target_slot];
             if (selected === correctOpt) {
@@ -310,6 +330,22 @@
                 document.getElementById(`slot-${pData.trap_point.target_slot}`).textContent = selected;
                 document.getElementById(`slot-${pData.trap_point.target_slot}`).style.color = '#51cf66';
                 document.getElementById('trap-expl').style.display = 'none';
+                
+                // Update pronunciation
+                const readingKoEl = document.getElementById('particle-reading-ko');
+                if (readingKoEl) {
+                    let partsKo = pData.sentence_skeleton_ko.split("___");
+                    let filledKo = "";
+                    for(let i=0; i<partsKo.length; i++) {
+                        filledKo += partsKo[i];
+                        if(i < partsKo.length - 1) {
+                            let particle = (i === pData.trap_point.target_slot) ? selected : pData.correct_particles[i];
+                            filledKo += particleToKo[particle] || particle;
+                        }
+                    }
+                    readingKoEl.textContent = "[" + filledKo + "]";
+                }
+
                 playAudio(pData.sentence_skeleton.split("___").map((p, i) => i === pData.trap_point.target_slot ? selected : (pData.correct_particles[i] || p)).join("").replace(/___/g, ""));
             } else {
                 btnEl.classList.add('wrong');
@@ -339,8 +375,13 @@
                     <div class="pattern-block">${patData.pattern_name.replace('〜', '')}</div>
                 </div>
                 
-                <div id="pattern-result" style="margin-top: 25px; font-size: 22px; font-weight:bold; color:var(--primary); opacity:0; transition: opacity 0.5s;">
-                    ${drill.full_sentence}
+                <div id="pattern-result" style="margin-top: 25px; text-align:center; opacity:0; transition: opacity 0.5s;">
+                    <div style="font-size: 22px; font-weight:bold; color:var(--primary);">
+                        ${drill.full_sentence}
+                    </div>
+                    <div style="font-size: 15px; color: #868e96; margin-top: 5px;">
+                        [${drill.full_sentence_ko}]
+                    </div>
                 </div>
                 
                 <div class="action-btns" style="margin-top:30px;">
